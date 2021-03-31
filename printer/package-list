@@ -1,0 +1,15 @@
+$dokka.format:html-v1
+$dokka.linkExtension:html
+
+com.tabesto.printer
+com.tabesto.printer.dagger
+com.tabesto.printer.model
+com.tabesto.printer.model.devicemanager
+com.tabesto.printer.model.error
+com.tabesto.printer.model.status
+com.tabesto.printer.model.ticket
+com.tabesto.printer.multiprinter
+com.tabesto.printer.utils
+com.tabesto.printer.utils.log
+com.tabesto.printer.writer
+
