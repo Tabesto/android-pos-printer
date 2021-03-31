@@ -1,0 +1,64 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+buildscript {
+    apply from: 'dependencies.gradle'
+    repositories {
+        google()
+        jcenter()
+    }
+    dependencies {
+        classpath deps.gradlePlugin.android
+        classpath deps.gradlePlugin.kotlin
+        classpath deps.gradlePlugin.sonar
+        classpath deps.gradlePlugin.jacoco
+        classpath deps.gradlePlugin.dokka
+
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+}
+plugins {
+    id "io.gitlab.arturbosch.detekt" version "$detektVersion"
+}
+dependencies {
+    detektPlugins "io.gitlab.arturbosch.detekt:detekt-formatting:$detektVersion"
+}
+tasks.detekt.jvmTarget = versions.jvmTarget
+subprojects {
+    apply plugin: "io.gitlab.arturbosch.detekt"
+    detekt {
+        toolVersion = "${detektVersion}"
+        failFast = true
+        buildUponDefaultConfig = false
+        config = files("$project.rootDir/.detekt/config.yml")
+        reports {
+            html.enabled = true
+            xml.enabled = true
+            txt.enabled = true
+        }
+    }
+}
+apply from: "$project.rootDir/sonar.gradle"
+
+allprojects {
+    repositories {
+        google()
+        jcenter()
+        maven { url 'https://jitpack.io' }
+    }
+}
+subprojects {
+    apply plugin: "org.sonarqube"
+    sonarqube {
+        properties {
+            property "sonar.coverage.jacoco.xmlReportPaths", "${project.buildDir}/reports/coverage/debug/report.xml"
+            property "sonar.android.lint.report", "${project.buildDir}/reports/lint-results-debug.xml"
+            property "sonar.androidLint.reportPaths", "${project.buildDir}/reports/lint-results-debug.xml"
+            property 'sonar.kotlin.detekt.reportPaths', "${project.buildDir}/reports/detekt/detekt.xml"
+            property "sonar.jacoco.itReportPath", fileTree(dir: project.projectDir, includes: ["**/*.ec"])
+            property "sonar.coverage.exclusions", "${coverageExcludesFilter.join(',')}"
+        }
+    }
+}
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}

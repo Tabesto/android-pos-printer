@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="24dp"
+        tools:context=".MainActivity">
+
+        <EditText
+            android:id="@+id/editTextAddress"
+            style="@style/PrinterEditText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:autofillHints="@string/main_bluetooth_address_default_second"
+            android:drawablePadding="12dp"
+            android:hint="@string/main_bluetooth_address_default_second"
+            android:inputType="text"
+            android:text="@string/main_bluetooth_address_default_second"
+            app:layout_constraintBottom_toTopOf="@+id/buttonConnectPrintManual"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_chainStyle="spread_inside" />
+
+        <Button
+            android:id="@+id/buttonConnectPrintManual"
+            style="@style/PrinterButtonPrimary"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="connectInManualMode"
+            android:text="@string/main_connect_manual_mode"
+            app:layout_constraintBottom_toTopOf="@+id/buttonPrintManual"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/editTextAddress"
+            app:layout_constraintVertical_chainStyle="spread_inside" />
+
+        <Button
+            android:id="@+id/buttonPrintManual"
+            style="@style/PrinterButtonPrimary"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="launchPrintManual"
+            android:text="@string/main_print_manual_mode"
+            app:layout_constraintBottom_toTopOf="@+id/buttonPrintAll"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/buttonConnectPrintManual"
+            app:layout_constraintVertical_chainStyle="spread_inside" />
+
+        <Button
+            android:id="@+id/buttonPrintAll"
+            style="@style/PrinterButtonPrimary"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="launchPrintOnAllPrinter"
+            android:text="@string/main_print_all_printer"
+            app:layout_constraintBottom_toTopOf="@+id/buttonDisconnectManual"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/buttonPrintManual"
+            app:layout_constraintVertical_chainStyle="spread_inside" />
+
+        <Button
+            android:id="@+id/buttonDisconnectManual"
+            style="@style/PrinterButtonPrimary"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="disconnectPrinterInManualMode"
+            android:text="@string/main_disconnect_manual_mode"
+            app:layout_constraintBottom_toTopOf="@+id/buttonDisconnectAll"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/buttonPrintAll"
+            app:layout_constraintVertical_chainStyle="spread_inside" />
+
+        <Button
+            android:id="@+id/buttonDisconnectAll"
+            style="@style/PrinterButtonPrimary"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="disconnectAllPrinter"
+            android:text="@string/main_disconnect_all_printer"
+            app:layout_constraintBottom_toTopOf="@+id/buttonLaunchDiscovery"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/buttonDisconnectManual"
+            app:layout_constraintVertical_chainStyle="spread_inside" />
+
+        <Button
+            android:id="@+id/buttonLaunchDiscovery"
+            style="@style/PrinterButtonPrimary"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="launchDiscovery"
+            android:text="@string/main_launch_discovery"
+            android:visibility="gone"
+            app:layout_constraintBottom_toTopOf="@+id/buttonStopDiscovery"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/buttonDisconnectAll"
+            app:layout_constraintVertical_chainStyle="spread_inside" />
+
+        <Button
+            android:id="@+id/buttonStopDiscovery"
+            style="@style/PrinterButtonPrimary"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="stopDiscovery"
+            android:text="@string/main_stop_discovery"
+            android:visibility="gone"
+            app:layout_constraintBottom_toTopOf="@+id/buttonGetStatus"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/buttonLaunchDiscovery"
+            app:layout_constraintVertical_chainStyle="spread_inside" />
+
+        <Button
+            android:id="@+id/buttonGetStatus"
+            style="@style/PrinterButtonPrimary"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="getStatus"
+            android:text="@string/main_get_status"
+            app:layout_constraintBottom_toTopOf="@+id/buttonShowJobResultArchive"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/buttonStopDiscovery"
+            app:layout_constraintVertical_chainStyle="spread_inside" />
+
+        <Button
+            android:id="@+id/buttonShowJobResultArchive"
+            style="@style/PrinterButtonPrimary"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="showJobResultHistoryList"
+            android:text="@string/main_get_job_history_list"
+            app:layout_constraintBottom_toTopOf="@+id/buttonShowManagedPrinterList"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/buttonGetStatus"
+            app:layout_constraintVertical_chainStyle="spread_inside" />
+
+        <Button
+            android:id="@+id/buttonShowManagedPrinterList"
+            style="@style/PrinterButtonPrimary"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="showManagedPrinterList"
+            android:text="@string/main_get_managed_printer_list"
+            app:layout_constraintBottom_toTopOf="@+id/buttonStartExampleActivity"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/buttonShowJobResultArchive"
+            app:layout_constraintVertical_chainStyle="spread_inside" />
+
+        <Button
+            android:id="@+id/buttonStartExampleActivity"
+            style="@style/PrinterButtonPrimary"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="startExampleActivity"
+            android:text="@string/main_start_exampleActivity"
+            app:layout_constraintBottom_toTopOf="@+id/progressBar"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/buttonShowManagedPrinterList"
+            app:layout_constraintVertical_chainStyle="spread_inside" />
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="90dp"
+            android:layout_height="90dp"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/buttonStartExampleActivity"
+            app:layout_constraintVertical_chainStyle="spread_inside" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>

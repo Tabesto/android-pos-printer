@@ -1,0 +1,3 @@
+include ':printer'
+include ':sample'
+rootProject.name = "printer-module"

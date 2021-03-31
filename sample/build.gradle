@@ -1,0 +1,52 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+android {
+    compileSdkVersion versions.compileSdk
+    buildToolsVersion versions.buildTools
+    ndkVersion versions.ndk
+    defaultConfig {
+        applicationId "com.tabesto.printer"
+        minSdkVersion versions.minSdk
+        targetSdkVersion versions.targetSdk
+        versionCode appVersionCode
+        versionName appVersionName
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+    compileOptions {
+        sourceCompatibility versions.sourceCompat
+        targetCompatibility versions.targetCompat
+    }
+    kotlinOptions {
+        jvmTarget = versions.jvmTarget
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+repositories {
+    maven {
+        name = "GitHubPackages"
+        url = uri(artifact.githubPackagesPath)
+        credentials {
+            // Replace with your repo info to call printer library
+            username = properties['git.username']
+            password = properties['git.token']
+        }
+    }
+}
+dependencies {
+    implementation deps.kotlin.stdlib
+    implementation deps.kotlin.ktx
+    implementation deps.compat.appCompat
+    implementation deps.compat.constraintLayout
+    implementation deps.ui.recyclerView
+    debugImplementation deps.leakCanary
+
+    api project(':printer')
+    // Replace "api project(':printer')" by this line to call printer library from external
+//    api 'com.tabesto:printer-module:0.1.0-beta4'
+}

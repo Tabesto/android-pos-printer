@@ -1,0 +1,144 @@
+ext.versions = [
+        sourceCompat                   : JavaVersion.VERSION_1_8,
+        targetCompat                   : JavaVersion.VERSION_1_8,
+        jvmTarget                      : JavaVersion.VERSION_1_8.toString(),
+        minSdk                         : 21,
+        targetSdk                      : 30,
+        compileSdk                     : 30,
+        versionNameMajor               : 1,
+        versionNameMinor               : 0,
+        versionNamePatch               : 0,
+        versionNamePreReleaseClassifier: "beta",
+        versionNamePreReleaseNumber    : null,
+        isSnapshot                     : false,
+        buildTools                     : '30.0.2',
+        ndk                            : '21.4.7075529',
+        androidGradleVersion           : '4.0.2',
+        kotlinVersion                  : '1.3.72',
+        ktx                            : '1.3.2',
+        coroutines                     : '1.3.9',
+        junit                          : '4.13.1',
+        mockitoKotlin                  : '2.2.0',
+        androidxTest                   : '1.3.0',
+        extJunit                       : '1.1.2',
+        mockito                        : '3.6.0',
+        kotlinx                        : '1.4.1',
+        appCompat                      : '1.2.0',
+        constraintLayout               : '2.0.1',
+        sonarVersion                   : '3.0',
+        jacocoVersion                  : '0.8.6',
+        detektVersion                  : '1.15.0-RC1',
+        timber                         : '4.7.1',
+        daggerVersion                  : '2.30.1',
+        serialization                  : '1.0.1',
+        recyclerView                   : '1.1.0',
+        dokkaVersion                   : '1.4.20',
+        leakCanaryVersion              : '2.6',
+]
+
+ext.deps = [
+        gradlePlugin: [
+                android: "com.android.tools.build:gradle:${versions.androidGradleVersion}",
+                kotlin : "org.jetbrains.kotlin:kotlin-gradle-plugin:${versions.kotlinVersion}",
+                sonar  : "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:${versions.sonarVersion}",
+                jacoco : "org.jacoco:org.jacoco.core:${versions.jacocoVersion}",
+                dokka  : "org.jetbrains.dokka:dokka-gradle-plugin:${versions.dokkaVersion}",
+        ],
+        kotlin      : [
+                stdlib       : "org.jetbrains.kotlin:kotlin-stdlib:${versions.kotlinVersion}",
+                ktx          : "androidx.core:core-ktx:${versions.ktx}",
+                coroutines   : "org.jetbrains.kotlinx:kotlinx-coroutines-android:${versions.coroutines}",
+                serialization: "org.jetbrains.kotlinx:kotlinx-serialization-json:${versions.serialization}"
+        ],
+        compat      : [
+                appCompat       : "androidx.appcompat:appcompat:${versions.appCompat}",
+                constraintLayout: "androidx.constraintlayout:constraintlayout:${versions.constraintLayout}",
+        ],
+        ui          : [
+                recyclerView: "androidx.recyclerview:recyclerview:${versions.recyclerView}"
+        ],
+        test        : [
+                junit                : "junit:junit:${versions.junit}",
+                mockitoKotlin        : "com.nhaarman.mockitokotlin2:mockito-kotlin:${versions.mockitoKotlin}",
+                androidxCore         : "androidx.test:core:${versions.androidxTest}",
+                androidxRunner       : "androidx.test:runner:${versions.androidxTest}",
+                androidxRules        : "androidx.test:rules:${versions.androidxTest}",
+                androidxExtJUnit     : "androidx.test.ext:junit:${versions.extJunit}",
+                mockitoCore          : "org.mockito:mockito-core:${versions.mockito}",
+                mockitoAndroid       : "org.mockito:mockito-android:${versions.mockito}",
+                kotlinxCoroutinesTest: "org.jetbrains.kotlinx:kotlinx-coroutines-test:${versions.kotlinx}",
+        ],
+        log         : [
+                timber: "com.jakewharton.timber:timber:${versions.timber}",
+        ],
+        injection   : [
+                dagger        : "com.google.dagger:dagger:${versions.daggerVersion}",
+                daggerCompiler: "com.google.dagger:dagger-compiler:${versions.daggerVersion}"
+        ],
+        leakCanary  : "com.squareup.leakcanary:leakcanary-android:${versions.leakCanaryVersion}",
+]
+
+def githubPackagesUser = "tabesto"
+def githubPackagesRepo = "tabesto-printer-module"
+
+ext.artifact = [
+        groupId           : "com.tabesto",
+        artifactId        : "printer-module",
+        libraryName       : "PrinterModule",
+        libraryDescription: "Printer Library to use POS printers",
+        githubPackagesPath: "https://maven.pkg.github.com/$githubPackagesUser/$githubPackagesRepo",
+]
+
+ext.appVersionName = generateVersionName()
+
+private String generateVersionName() {
+    String versionName = "${versions.versionNameMajor}.${versions.versionNameMinor}.${versions.versionNamePatch}"
+    if ((versions.versionNamePreReleaseClassifier) != null) {
+        versionName += "-${versions.versionNamePreReleaseClassifier}"
+        if ((versions.versionNamePreReleaseNumber) != null) {
+            versionName += ".${versions.versionNamePreReleaseNumber}"
+        }
+    }
+    return versionName
+}
+
+ext.appVersionCode = generateVersionCode()
+
+private Integer generateVersionCode() {
+    return versions.minSdk * 10000000 + versions.versionNameMajor * 10000 + versions.versionNameMinor * 100 + versions.versionNamePatch
+}
+
+ext.coverageExcludesFilter = [
+        '**/R.class',
+        '**/R$*.class',
+        '**/BuildConfig.*',
+        '**/Manifest*.*',
+        '**/*Test*.*',
+        '**/sample/**',
+        '**/ui/databinding/**',
+        '**/android/databinding/*',
+        '**/androidx/databinding/*',
+        '**/di/module/*',
+        '**/*MapperImpl*.*',
+        '**/*$ViewInjector*.*',
+        '**/*$ViewBinder*.*',
+        '**/BuildConfig.*',
+        '**/*Component*.*',
+        '**/*BR*.*',
+        '**/Manifest*.*',
+        '**/*$Lambda$*.*',
+        '**/*Companion*.*',
+        '**/*Module.*',
+        '**/*Dagger*.*',
+        '**/*MembersInjector*.*',
+        '**/*_Factory*.*',
+        '**/*_Provide*Factory*.*',
+        '**/*Extensions*.*',
+        '**/*Fragment.*',
+        '**/*Activity.*',
+        '**/*Adapter.*',
+        '**/*ViewPager.*',
+        '**/*ViewHolder.*',
+        '**/*$Result.*', /* filtering `sealed` and `data` classes */
+        '**/*$Result$*.*'/* filtering `sealed` and `data` classes */
+]

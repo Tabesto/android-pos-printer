@@ -1,0 +1,44 @@
+<resources>
+    <string name="app_name">printer-module</string>
+    <string name="main_bluetooth_address_default">BT:00:01:90:BE:3D:F2</string>
+    <string name="main_bluetooth_address_default_second">BT:00:01:90:BE:3D:69</string>
+    <string name="main_tcp_address_default">TCP:192.168.1.116</string>
+    <string name="main_connect_print_auto_mode">Connect &amp; print in auto mode</string>
+    <string name="main_connect_manual_mode">Connect in manual mode</string>
+    <string name="main_print_manual_mode">Print in manual mode</string>
+    <string name="main_print_all_printer">Print on all printer</string>
+    <string name="main_disconnect_manual_mode">Disconnect in manual mode</string>
+    <string name="main_disconnect_all_printer">Disconnect all printer</string>
+    <string name="main_launch_discovery">Launch discovery</string>
+    <string name="main_launch_discovery_with_timer">Launch discovery with timer 17s</string>
+    <string name="main_stop_discovery">Stop discovery</string>
+    <string name="main_get_status">Get printer status</string>
+    <string name="main_get_job_history_list">Get Jobs Results History</string>
+    <string name="main_get_managed_printer_list">Get Managed Printer List</string>
+    <string name="main_start_exampleActivity">Start ExampleActivity</string>
+
+    <string name="job_succeed">SUCCEED</string>
+    <string name="job_failed">FAILED</string>
+    <string name="printer_connected">CONNECTED</string>
+    <string name="printer_disconnected">DISCONNECTED</string>
+
+    <string name="clear_list_button">CLEAR LIST</string>
+    <string name="close_button">CLOSE</string>
+    <string name="error_code">CODE</string>
+    <string name="error_message">MESSAGE</string>
+    <string name="error_action">ACTION</string>
+    <string name="printer_address">PRINTER ADDRESS</string>
+    <string name="printer_status">STATUS</string>
+    <string name="date">DATE</string>
+    <string name="scope">SCOPE</string>
+    <string name="result">RESULT</string>
+
+    <string name="job_result_error_printer_address">Printer Address : %1$s</string>
+    <string name="job_result_error_scope">Scope : %1$s</string>
+    <string name="job_result_error_date">Date : %1$s</string>
+    <string name="job_result_error_message">"Error message : %1$s</string>
+    <string name="job_result_error_code">"Error code : %1$s</string>
+    <string name="job_result_error_action">"Error action : %1$s</string>
+
+    <string name="imageView_content_bin">Image of bin to remove printer</string>
+</resources>

@@ -1,0 +1,113 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'maven-publish'
+apply plugin: 'kotlin-kapt'
+apply plugin: 'org.jetbrains.dokka'
+apply from: "$project.rootDir/jacoco.gradle"
+
+android {
+    compileSdkVersion versions.compileSdk
+    buildToolsVersion versions.buildTools
+    ndkVersion versions.ndk
+    defaultConfig {
+        minSdkVersion versions.minSdk
+        targetSdkVersion versions.targetSdk
+        versionCode appVersionCode
+        versionName appVersionName
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+    }
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['src/main/jniLibs']
+        }
+    }
+    compileOptions {
+        sourceCompatibility versions.sourceCompat
+        targetCompatibility versions.targetCompat
+    }
+    kotlinOptions {
+        jvmTarget = versions.jvmTarget
+    }
+    buildTypes {
+        debug {
+            // comment this line temporarily in case of NoClassDefFoundError (see: https://stackoverflow.com/a/39195755)
+            testCoverageEnabled true
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    configurations.all {
+        resolutionStrategy {
+            exclude group: "org.jetbrains.kotlinx", module: "kotlinx-coroutines-debug"
+            // required to run connectedDebugAndroidTest (see: https://github.com/mockito/mockito/issues/2007#issuecomment-689365556)
+            force "org.objenesis:objenesis:2.6"
+        }
+    }
+}
+dependencies {
+    api fileTree(dir: "libs", include: ["*.jar"])
+    implementation fileTree(include: ['*.so'], dir: 'jniLibs')
+    implementation deps.log.timber
+
+    // Dagger
+    implementation deps.injection.dagger
+    kapt deps.injection.daggerCompiler
+    implementation deps.kotlin.stdlib
+    implementation deps.kotlin.ktx
+    api deps.kotlin.coroutines
+    // Test
+    androidTestImplementation deps.test.junit
+    androidTestImplementation deps.test.mockitoKotlin
+    androidTestImplementation deps.test.androidxCore
+    androidTestImplementation deps.test.androidxRunner
+    androidTestImplementation deps.test.androidxRules
+    androidTestImplementation deps.test.androidxExtJUnit
+    androidTestImplementation deps.test.mockitoCore
+    androidTestImplementation deps.test.mockitoAndroid
+    androidTestImplementation deps.test.kotlinxCoroutinesTest
+    kaptAndroidTest deps.injection.daggerCompiler
+}
+task androidSourcesJar(type: Jar) {
+    archiveClassifier.set('sources')
+    from android.sourceSets.main.java.srcDirs
+}
+afterEvaluate {
+    publishing {
+        publications {
+            maven(MavenPublication) {
+                groupId artifact.groupId
+                artifactId artifact.artifactId
+                version versions.versionName
+                from components.release
+                artifact androidSourcesJar
+                pom {
+                    name = artifact.libraryName
+                    description = artifact.libraryDescription
+                }
+            }
+        }
+        repositories {
+            maven {
+                name = "GitHubPackages"
+                url = uri(artifact.githubPackagesPath)
+                credentials {
+                    username = System.getenv("GPR_USER")
+                    password = System.getenv("GPR_KEY")
+                }
+            }
+        }
+    }
+    publish.dependsOn assemble
+}
+
+dokkaHtml.configure {
+    dokkaSourceSets {
+        named("main") {
+            noAndroidSdkLink.set(false)
+        }
+    }
+}
