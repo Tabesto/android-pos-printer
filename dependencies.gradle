@@ -78,14 +78,14 @@ ext.deps = [
         leakCanary  : "com.squareup.leakcanary:leakcanary-android:${versions.leakCanaryVersion}",
 ]
 
-def githubPackagesUser = "tabesto"
-def githubPackagesRepo = "tabesto-printer-module"
+def githubPackagesUser = "Tabesto"
+def githubPackagesRepo = "android-pos-printer-private"
 
 ext.artifact = [
         groupId           : "com.tabesto",
-        artifactId        : "printer-module",
-        libraryName       : "PrinterModule",
-        libraryDescription: "Printer Library to use POS printers",
+        artifactId        : "printer",
+        libraryName       : "Android POS Printer",
+        libraryDescription: "Android Library to use POS printers",
         githubPackagesPath: "https://maven.pkg.github.com/$githubPackagesUser/$githubPackagesRepo",
 ]
 
