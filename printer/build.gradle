@@ -6,6 +6,9 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'org.jetbrains.dokka'
 apply from: "$project.rootDir/jacoco.gradle"
 
+group = artifact.groupId
+version = appVersionName
+
 android {
     compileSdkVersion versions.compileSdk
     buildToolsVersion versions.buildTools
