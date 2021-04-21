@@ -6,6 +6,9 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'org.jetbrains.dokka'
 apply from: "$project.rootDir/jacoco.gradle"
 
+group = artifact.groupId
+version = appVersionName
+
 android {
     compileSdkVersion versions.compileSdk
     buildToolsVersion versions.buildTools
@@ -48,6 +51,7 @@ android {
         }
     }
 }
+
 dependencies {
     api fileTree(dir: "libs", include: ["*.jar"])
     implementation fileTree(include: ['*.so'], dir: 'jniLibs')
@@ -71,19 +75,23 @@ dependencies {
     androidTestImplementation deps.test.kotlinxCoroutinesTest
     kaptAndroidTest deps.injection.daggerCompiler
 }
+
 task androidSourcesJar(type: Jar) {
     archiveClassifier.set('sources')
     from android.sourceSets.main.java.srcDirs
 }
+
 afterEvaluate {
     publishing {
         publications {
             maven(MavenPublication) {
                 groupId artifact.groupId
                 artifactId artifact.artifactId
-                version versions.versionName
+                version appVersionName
                 from components.release
                 artifact androidSourcesJar
+//                artifact("$buildDir/outputs/aar/${project.getName()}-release.aar")
+//                artifact bundleReleaseAar
                 pom {
                     name = artifact.libraryName
                     description = artifact.libraryDescription
