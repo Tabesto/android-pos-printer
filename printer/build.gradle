@@ -12,7 +12,6 @@ version = appVersionName
 android {
     compileSdkVersion versions.compileSdk
     buildToolsVersion versions.buildTools
-    ndkVersion versions.ndk
     defaultConfig {
         minSdkVersion versions.minSdk
         targetSdkVersion versions.targetSdk

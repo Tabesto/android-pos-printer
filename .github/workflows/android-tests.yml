@@ -22,13 +22,6 @@ jobs:
         with:
           java-version: 11
 
-#       Try to install ndk in MacOS environment, when error occurs
-#      - name: Grant Permission for NDK install to Execute 👮‍
-#        run: chmod +x ./.github/scripts/install-ndk.sh
-#
-#      - name: Install NDK
-#        run: ./.github/scripts/install-ndk.sh
-
       - name: Cache SonarCloud packages 🗄
         uses: actions/cache@v1
         with:
