@@ -9,7 +9,7 @@ ext.versions = [
         versionNameMinor               : 0,
         versionNamePatch               : 0,
         versionNamePreReleaseClassifier: "beta",
-        versionNamePreReleaseNumber    : null,
+        versionNamePreReleaseNumber    : 1,
         isSnapshot                     : false,
         buildTools                     : '30.0.2',
         androidGradleVersion           : '4.0.2',
