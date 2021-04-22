@@ -2,39 +2,7 @@
 
 If you want to contribute to the code, please follow the following rules.
 
-## Table of contents
 
-<!---
-ToC generated with https://ecotrust-canada.github.io/markdown-toc/
--->
-
-- [💻 Android Studio](#---android-studio)
-  * [Recommended plugins](#recommended-plugins)
-- [✏️ Code](#---code)
-  * [Clean code](#clean-code)
-  * [Code Style](#code-style)
-  * [Naming conventions](#naming-conventions)
-  * [Lint & Sonar](#lint---sonar)
-  * [Unit tests](#unit-tests)
-  * [UI](#ui)
-- [🛠 Tasks](#---tasks)
-  * [Git](#git)
-    + [Messages](#messages)
-    + [Branches](#branches)
-  * [App Versioning](#app-versioning)
-  * [Release a version](#release-a-version)
-  * [Markdown](#markdown)
-  
-
-## 💻 Android Studio
-
-### Recommended plugins
-
-- [Adb Idea](https://plugins.jetbrains.com/plugin/7380-adb-idea) : Use ADB commands to your connected device directly from Android Studio.
-- [Kotlin Fill Class](https://plugins.jetbrains.com/plugin/10942-kotlin-fill-class) : Pre-fill all constructor parameters for a class. Essential for data classes.
-- [Key Promoter](https://plugins.jetbrains.com/plugin/9792-key-promoter-x) : Learn shortcuts for all actions done in Android Studio.
-- [String Manipulation](https://plugins.jetbrains.com/plugin/2162-string-manipulation) : Reformat strings (case switching, sorting, filtering, incrementing, aligning, encoding ...)
-- [Rainbow Brackets](https://plugins.jetbrains.com/plugin/10080-rainbow-brackets) : Increase readability for nested blocks.
 
 
 ## ✏️ Code
@@ -107,19 +75,11 @@ _After_ you commit, verify if tests are running on CI:
 
 
     ./gradlew clean createDebugCoverageReport
-    
+
 and open **jacoco report** generated in :
 
     /printer/build/reports/coverage/debug/index.html
 
-
-### UI
-
-Follow as much as possible the [Design System](https://uxdesign.cc/everything-you-need-to-know-about-design-systems-54b109851969) principles:
-
-- Create and re-use ui components with custom views
-- Use as much as possible `ConstrainLayout` to build responsive screens.
-- Create `styles`, `colors` and `dimens` instead of adding attributes in each views in layouts.
 
 
 ## 🛠 Tasks
@@ -154,18 +114,7 @@ cp .githooks/commit-msg .git/hooks/commit-msg
 
 Follow the [GitHub Flow][github-flow]
 
- 🚧 TODO update this.
-
-    ^(?:master|main|develop|feature\/(?P<feature_name>[A-Za-z][A-Za-z0-9\-\/]*)|(?:release|hotfix)\/(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:(?P<pre_release>(?:0|[1-9]\d*|\d*[A-Za-z-][A-Za-z0-9-]*)(?:\.(?:0|[1-9]\d*|\d*[A-Za-z-][A-Za-z0-9-]*))*))?(?:\+(?P<build_metadata>[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*))?)$
-
-
-### App Versioning
-
-Follow the [SemVer Conventions][semver]
-
-### Release a version
-
- 🚧 TODO explain release process with GitHub.
+Open a Pull Request targeting `develop` branch.
 
 ### Markdown
 
@@ -179,8 +128,6 @@ If you add or update titles, please generate a new Table of Contents by using [m
 
 
 
-
-[semver]: http://semver.org
 [conventional-commits]: https://www.conventionalcommits.org
 [github-flow]: https://guides.github.com/introduction/flow/
 [standard-version]: https://github.com/conventional-changelog/standard-version
