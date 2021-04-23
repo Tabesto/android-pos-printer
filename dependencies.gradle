@@ -9,7 +9,7 @@ ext.versions = [
         versionNameMinor               : 0,
         versionNamePatch               : 0,
         versionNamePreReleaseClassifier: "beta",
-        versionNamePreReleaseNumber    : 1,
+        versionNamePreReleaseNumber    : 2,
         isSnapshot                     : false,
         buildTools                     : '30.0.2',
         androidGradleVersion           : '4.0.2',
@@ -78,7 +78,7 @@ ext.deps = [
 ]
 
 def githubPackagesUser = "Tabesto"
-def githubPackagesRepo = "android-pos-printer-private"
+def githubPackagesRepo = "android-pos-printer"
 
 ext.artifact = [
 //        groupId           : "com.tabesto",
