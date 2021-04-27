@@ -1,4 +1,4 @@
-name: android-lint-sonar-only
+name: "[CI] Lint"
 
 on:
   workflow_dispatch:

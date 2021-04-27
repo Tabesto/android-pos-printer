@@ -112,9 +112,11 @@ cp .githooks/commit-msg .git/hooks/commit-msg
 
 #### Branches
 
-Follow the [GitHub Flow][github-flow]
+Follow this workflow:
 
-Open a Pull Request targeting `develop` branch.
+![Git workflow](docs/git-workflow.png?raw=true "Git workflow")
+
+You can **fork** the project, and **open a Pull Request** targeting the `develop` branch.
 
 ### Markdown
 
@@ -129,5 +131,4 @@ If you add or update titles, please generate a new Table of Contents by using [m
 
 
 [conventional-commits]: https://www.conventionalcommits.org
-[github-flow]: https://guides.github.com/introduction/flow/
 [standard-version]: https://github.com/conventional-changelog/standard-version

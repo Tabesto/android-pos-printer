@@ -1,9 +1,9 @@
-name: javadoc-publish
+name: "Publish KDoc"
 
 on:
   push:
     branches:
-      - "develop"
+      - "main"
   workflow_dispatch:
 
 jobs:
