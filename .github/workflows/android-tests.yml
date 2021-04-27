@@ -1,4 +1,4 @@
-name: android-tests-sonar
+name: "[CI] Lint+Tests"
 
 on:
   # limit build triggers for now
@@ -8,6 +8,7 @@ on:
       types: [opened, ready_for_review]
     branches:
       - "develop"
+      - "main"
   workflow_dispatch:
 
 jobs:

@@ -1,3 +1,5 @@
+[![](https://jitpack.io/v/Tabesto/android-pos-printer.svg)](https://jitpack.io/#Tabesto/android-pos-printer) [![CodeFactor](https://www.codefactor.io/repository/github/tabesto/android-pos-printer/badge)](https://www.codefactor.io/repository/github/tabesto/android-pos-printer) ![Build](https://github.com/Tabesto/android-pos-printer/actions/workflows/android-tests.yml/badge.svg?branch=main)
+
 # Tabesto POS printer module
 
 ## Description
@@ -17,11 +19,11 @@ With this wrapper module, we can handle printer(s) in a more convenient way, and
 
 ## Features
 
-- **Print** on **one** or **many** printer simultaneously.
-- **Customize ticket content** to print.
-- **Connect**, **disconnect** printers dynamically.
-- Retrieve printer **status** on demand.
-- **Discover** dynamically printers around (bluetooth only).
+- [x]  **Print** on **one** or **many** printer simultaneously.
+- [x] **Customize ticket content** to print.
+- [x] **Connect**, **disconnect** printers dynamically.
+- [x] Retrieve printer **status** on demand.
+- [ ] **Discover** dynamically printers around (bluetooth only). [Planned in future roadmap]
 
 
 
@@ -70,6 +72,10 @@ See `sample` application.
 A [Javadoc is available here.](https://tabesto.github.io/android-pos-printer/printer/)
 
 🚧 TODO: add more detailed documentation with examples
+
+<img src="docs/sample-screenshot-home.png" alt="drawing" width="300"/>
+
+*Note: for now, sample app is optimized for tablet screens*
 
 
 
