@@ -11,7 +11,7 @@ import com.tabesto.printer.model.PrinterManaged
 import com.tabesto.printer.sample.R
 
 class PrinterDataAndStatusListAdapter(
-    private val listOfPrinterDataAndPrinterStatus: ArrayList<PrinterManaged>,
+    private val listOfPrinterDataAndPrinterStatus: List<PrinterManaged>,
     private val listener: PrinterDataAndStatusListAdapterListener
 ) : RecyclerView.Adapter<PrinterDataAndStatusListAdapter.ViewHolder>() {
 

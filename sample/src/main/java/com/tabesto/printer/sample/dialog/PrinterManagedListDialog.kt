@@ -25,7 +25,7 @@ class PrinterManagedListDialog : DialogFragment(), PrinterDataAndStatusListAdapt
     private lateinit var linearLayoutManager: LinearLayoutManager
     private lateinit var buttonClose: Button
 
-    fun newInstance(listOfPrinterDataAndPrinterStatus: MutableList<PrinterManaged>): PrinterManagedListDialog {
+    fun newInstance(listOfPrinterDataAndPrinterStatus: List<PrinterManaged>): PrinterManagedListDialog {
         return PrinterManagedListDialog().apply {
             arguments = Bundle().apply {
                 putParcelableArrayList(listOfPrinterDataAndPrinterStatusTag, ArrayList(listOfPrinterDataAndPrinterStatus))
@@ -43,8 +43,8 @@ class PrinterManagedListDialog : DialogFragment(), PrinterDataAndStatusListAdapt
     override fun onViewCreated(view: View, @Nullable savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val listOfPrinterDataAndPrinterStatus: ArrayList<PrinterManaged> =
-            arguments?.getSerializable(listOfPrinterDataAndPrinterStatusTag) as ArrayList<PrinterManaged>
+        val listOfPrinterDataAndPrinterStatus: List<PrinterManaged> =
+            arguments?.getParcelableArrayList<PrinterManaged>(listOfPrinterDataAndPrinterStatusTag) as List<PrinterManaged>
 
         printerAndStatusListRecyclerView = view.findViewById(R.id.recyclerViewPrinterDataAndStatusList)
         buttonClose = view.findViewById(R.id.button_printer_list_close)

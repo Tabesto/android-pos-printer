@@ -29,7 +29,7 @@ class LoggerWriter(private val className: String) {
         }
     }
 
-    private fun printLoggerBody(loggerLevel: LoggerLevel, listLoggerBodyContent: ArrayList<LoggerExtraArgument>) {
+    private fun printLoggerBody(loggerLevel: LoggerLevel, listLoggerBodyContent: List<LoggerExtraArgument>) {
         when (loggerLevel) {
             LoggerLevel.DEBUG -> for (log in listLoggerBodyContent) {
                 Timber.tag(className)
@@ -50,7 +50,7 @@ class LoggerWriter(private val className: String) {
         }
     }
 
-    fun printLog(loggerLevel: LoggerLevel, listLoggerBodyContent: ArrayList<LoggerExtraArgument>) {
+    fun printLog(loggerLevel: LoggerLevel, listLoggerBodyContent: List<LoggerExtraArgument>) {
         printLoggerSeparator(loggerLevel)
 
         printLoggerBody(loggerLevel, listLoggerBodyContent)

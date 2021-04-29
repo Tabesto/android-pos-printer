@@ -947,4 +947,62 @@ class DeviceManagerTest {
         }
     }
     //endregion GET_STATUS
+
+    //region GET_REMAINING_JOB_LIST_AND_CANCEL
+    @Test
+    fun test_get_remaining_job_list_with_one_connection_in_progress() {
+        // given
+        listOfPrinters[printerData] = mockPrinter
+
+        // when
+        deviceManager.connectPrinter()
+        val result = deviceManager.getListOfRemainingJobs()
+
+        // then
+        assertThat(result.size, `is`(equalTo(1)))
+        assertThat(result[0].printerData, `is`(equalTo(printerData)))
+        assertThat(result[0].scopeTag, `is`(equalTo(CONNECT)))
+
+        // after
+        deviceManager.mainJobIsRunning = false
+    }
+
+    @Test
+    fun test_get_remaining_job_list_with_one_disconnection_in_progress() {
+        // given
+        listOfPrinters[printerData] = mockPrinter
+
+        // when
+        deviceManager.disconnectPrinter()
+        val result = deviceManager.getListOfRemainingJobs()
+
+        // then
+        assertThat(result.size, `is`(equalTo(1)))
+        assertThat(result[0].printerData, `is`(equalTo(printerData)))
+        assertThat(result[0].scopeTag, `is`(equalTo(DISCONNECT)))
+
+        // after
+        deviceManager.mainJobIsRunning = false
+    }
+
+    @Test
+    fun test_get_remaining_job_list_with_one_disconnection_in_progress_and_cancel_jobs() {
+        // given
+        listOfPrinters[printerData] = mockPrinter
+
+        // when
+        deviceManager.disconnectPrinter()
+        val listOfRemainingJobNotEmpty = deviceManager.getListOfRemainingJobs()
+        deviceManager.cancelAllJobsAndUnlock()
+        val listOfRemainingJobEmpty = deviceManager.getListOfRemainingJobs()
+
+        // then
+        assertThat(listOfRemainingJobNotEmpty.size, `is`(equalTo(1)))
+        assertThat(listOfRemainingJobNotEmpty[0].printerData, `is`(equalTo(printerData)))
+        assertThat(listOfRemainingJobNotEmpty[0].scopeTag, `is`(equalTo(DISCONNECT)))
+        assertThat(listOfRemainingJobEmpty.size, `is`(equalTo(0)))
+        assertThat(deviceManager.mainJobIsRunning, `is`(equalTo(false)))
+    }
+    //endregion GET_REMAINING_JOB_LIST_AND_CANCEL
 }
+

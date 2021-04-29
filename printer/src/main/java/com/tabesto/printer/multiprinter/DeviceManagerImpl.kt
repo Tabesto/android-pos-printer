@@ -13,6 +13,7 @@ import com.tabesto.printer.dagger.DaggerDeviceManagerComponent
 import com.tabesto.printer.dagger.DeviceManagerModule
 import com.tabesto.printer.model.PrinterData
 import com.tabesto.printer.model.PrinterManaged
+import com.tabesto.printer.model.PrinterRemainingJob
 import com.tabesto.printer.model.ScopeTag
 import com.tabesto.printer.model.ScopeTag.BLUETOOTH
 import com.tabesto.printer.model.ScopeTag.CONNECT
@@ -45,8 +46,8 @@ class DeviceManagerImpl internal constructor() : DeviceManager, PrinterInitListe
     private var deviceManagerDiscoveryListener: DeviceManagerDiscoveryListener? = null
     private var deviceManagerStatusListener: DeviceManagerStatusListener? = null
     private val listOfJobs: HashMap<PrinterData, ScopeTag> = HashMap()
-    private val listOfJobsResult: ArrayList<DeviceManagerJobResult> = ArrayList()
-    private val listOfHistoryJobsResult: ArrayList<DeviceManagerJobResult> = ArrayList()
+    private val listOfJobsResult: MutableList<DeviceManagerJobResult> = mutableListOf()
+    private val listOfHistoryJobsResult: MutableList<DeviceManagerJobResult> = mutableListOf()
     private val logger: Logger = Logger(DeviceManagerImpl::class.java.simpleName)
     private var numberOfPrinterWithOperation = 0
     private var counterPrinterNotManaged = 0
@@ -87,7 +88,7 @@ class DeviceManagerImpl internal constructor() : DeviceManager, PrinterInitListe
         }
     }
 
-    override fun initializePrinter(listOfPrinterData: ArrayList<PrinterData>, context: Context) {
+    override fun initializePrinter(listOfPrinterData: List<PrinterData>, context: Context) {
         if (!mainJobIsRunning) {
             mainJobIsRunning = true
             addPrinterList(listOfPrinterData, context)
@@ -98,9 +99,9 @@ class DeviceManagerImpl internal constructor() : DeviceManager, PrinterInitListe
         }
     }
 
-    private fun addPrinterList(listOfPrinterData: ArrayList<PrinterData>, context: Context) {
-        for (printerData in listOfPrinterData) {
-            if (listOfPrinters[printerData] == null) {
+    private fun addPrinterList(listOfPrinterData: List<PrinterData>, context: Context) {
+        listOfPrinterData.forEach { printerData ->
+            if (!listOfPrinters.containsKey(printerData)) {
                 addPrinterToList(printerData, context)
             }
         }
@@ -149,7 +150,7 @@ class DeviceManagerImpl internal constructor() : DeviceManager, PrinterInitListe
         }
     }
 
-    override fun connectPrinter(listOfPrinterData: ArrayList<PrinterData>) {
+    override fun connectPrinter(listOfPrinterData: List<PrinterData>) {
         if (!mainJobIsRunning) {
             mainJobIsRunning = true
 
@@ -177,7 +178,7 @@ class DeviceManagerImpl internal constructor() : DeviceManager, PrinterInitListe
         }
     }
 
-    override fun printData(listOfPrinterData: ArrayList<PrinterData>, ticketData: TicketData) {
+    override fun printData(listOfPrinterData: List<PrinterData>, ticketData: TicketData) {
         val listOfPrinterDataManaged = initializeJobList(listOfPrinterData, PRINT_DATA)
 
         listOfPrinterDataManaged.forEach {
@@ -205,7 +206,7 @@ class DeviceManagerImpl internal constructor() : DeviceManager, PrinterInitListe
         }
     }
 
-    override fun disconnectPrinter(listOfPrinterData: ArrayList<PrinterData>) {
+    override fun disconnectPrinter(listOfPrinterData: List<PrinterData>) {
         if (!mainJobIsRunning) {
             mainJobIsRunning = true
 
@@ -259,10 +260,10 @@ class DeviceManagerImpl internal constructor() : DeviceManager, PrinterInitListe
         }
     }
 
-    private fun initializeJobList(printerData: PrinterData, scope: ScopeTag): ArrayList<PrinterData> {
+    private fun initializeJobList(printerData: PrinterData, scope: ScopeTag): List<PrinterData> {
         numberOfPrinterWithOperation = 1
 
-        val listOfPrinterDataManaged: ArrayList<PrinterData> = ArrayList()
+        val listOfPrinterDataManaged: MutableList<PrinterData> = mutableListOf()
 
         listOfPrinters[printerData]?.let {
             listOfJobs[it.printerData] = scope
@@ -272,10 +273,10 @@ class DeviceManagerImpl internal constructor() : DeviceManager, PrinterInitListe
         return listOfPrinterDataManaged
     }
 
-    private fun initializeJobList(listOfPrinterData: List<PrinterData>, scope: ScopeTag): ArrayList<PrinterData> {
+    private fun initializeJobList(listOfPrinterData: List<PrinterData>, scope: ScopeTag): List<PrinterData> {
         numberOfPrinterWithOperation = listOfPrinterData.size
 
-        val listOfPrinterDataManaged: ArrayList<PrinterData> = ArrayList()
+        val listOfPrinterDataManaged: MutableList<PrinterData> = mutableListOf()
 
         listOfPrinterData.forEach { printerData ->
             listOfPrinters[printerData]?.let {
@@ -425,8 +426,7 @@ class DeviceManagerImpl internal constructor() : DeviceManager, PrinterInitListe
     }
 
     private fun returnMainJobIsRunning(listOfPrinterData: List<PrinterData>, scope: ScopeTag) {
-        var indexPrinter = 0
-        for (printerData in listOfPrinterData) {
+        listOfPrinterData.forEachIndexed { index, printerData ->
             val deviceManagerException = DeviceManagerException(MAIN_JOB_IS_RUNNING)
 
             val jobResult = DeviceManagerJobResult(
@@ -438,12 +438,8 @@ class DeviceManagerImpl internal constructor() : DeviceManager, PrinterInitListe
             )
             listOfHistoryJobsResult.add(jobResult)
 
-            indexPrinter++
-            if (indexPrinter == listOfPrinterData.size) {
-                deviceManagerListener?.onDeviceManagerErrorForAJobResult(jobResult, true)
-            } else {
-                deviceManagerListener?.onDeviceManagerErrorForAJobResult(jobResult, false)
-            }
+            val isLastReturnOfJob: Boolean = index == listOfPrinterData.lastIndex
+            deviceManagerListener?.onDeviceManagerErrorForAJobResult(jobResult, isLastReturnOfJob)
         }
     }
 
@@ -494,11 +490,9 @@ class DeviceManagerImpl internal constructor() : DeviceManager, PrinterInitListe
 
     override fun getManagedPrinterDataAndStatusList() {
         CoroutineScope(dispatcher).launch {
-            val listOfPrinterDataAndPrinterStatus: MutableList<PrinterManaged> = mutableListOf()
-            for ((printerData, printer) in listOfPrinters) {
+            val listOfPrinterDataAndPrinterStatus: List<PrinterManaged> = listOfPrinters.map { (printerData, printer) ->
                 val currentPrinterStatus = printer.getStatusRaw()
-                val printerManaged = PrinterManaged(printerData, currentPrinterStatus)
-                listOfPrinterDataAndPrinterStatus.add(printerManaged)
+                PrinterManaged(printerData, currentPrinterStatus)
             }
             deviceManagerListener?.onListOfPrinterManagedReceived(listOfPrinterDataAndPrinterStatus)
         }
@@ -526,6 +520,15 @@ class DeviceManagerImpl internal constructor() : DeviceManager, PrinterInitListe
         logRemainingJobs()
         return false
     }
+
+    override fun cancelAllJobsAndUnlock() {
+        listOfPrinters.forEach { (_, printer) -> printer.cancelAllJob() }
+        listOfJobs.clear()
+        mainJobIsRunning = false
+    }
+
+    override fun getListOfRemainingJobs(): List<PrinterRemainingJob> =
+        listOfJobs.map { (printerData, scope) -> PrinterRemainingJob(printerData, scope) }
 
     private fun logRemainingJobs() {
         logger.i(" in logRemainingJobs ")

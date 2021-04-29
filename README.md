@@ -1,12 +1,12 @@
 [![](https://jitpack.io/v/Tabesto/android-pos-printer.svg)](https://jitpack.io/#Tabesto/android-pos-printer) [![CodeFactor](https://www.codefactor.io/repository/github/tabesto/android-pos-printer/badge)](https://www.codefactor.io/repository/github/tabesto/android-pos-printer) ![Build](https://github.com/Tabesto/android-pos-printer/actions/workflows/android-tests.yml/badge.svg?branch=main)
 
-
 # Tabesto POS printer module
 
 ## Description
 
 This module allows you to use POS printers easily with your Android application.
 With this wrapper module, we can handle printer(s) in a more convenient way, and add some flexibility.
+For information, present module is currently used in production with all our customers.
 
 
 
@@ -42,6 +42,7 @@ allprojects {
 ```
 
 
+
 Add the dependency in your module build.gradle, with the last version available [![](https://jitpack.io/v/Tabesto/android-pos-printer.svg)](https://jitpack.io/#Tabesto/android-pos-printer) :
 
 ```groovy
@@ -50,6 +51,29 @@ dependencies {
   	implementation 'com.github.Tabesto:android-pos-printer:{lastVersion}'
 	}
 ```
+
+
+
+By default, all architectures are available for the native Epson SDK and embedded in the printer library. If you have specific devices to target and want to optimize your APK size, you can filter the architectures to embed only specific ones (see the [official documentation](https://developer.android.com/studio/projects/gradle-external-native-builds#specify-abi) for more information) :
+
+```groovy
+android {
+  ...
+  defaultConfig {
+    ...
+    ndk {
+      // Specifies the ABI configurations of your native
+      // libraries Gradle should build and package with your APK.
+      abiFilters 'x86', 'x86_64', 'armeabi', 'armeabi-v7a','arm64-v8a'
+    }
+  }
+}
+```
+
+<details>
+  <summary>See sample APK size comparison (click to expand)</summary>
+  <img src="docs/apk-size-all.png" alt="drawing" width="420"/> <img src="docs/apk-size-filter.png" alt="drawing" width="420"/>
+</details>
 
 
 
@@ -76,6 +100,7 @@ A [Javadoc is available here.](https://tabesto.github.io/android-pos-printer/pri
 <img src="docs/sample-screenshot-home.png" alt="drawing" width="300"/>
 
 *Note: for now, sample app is optimized for tablet screens*
+
 
 
 

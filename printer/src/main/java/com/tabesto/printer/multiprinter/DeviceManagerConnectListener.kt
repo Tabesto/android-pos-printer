@@ -10,7 +10,7 @@ interface DeviceManagerConnectListener {
      * This callback is fired only once after finishing instruction on all printer
      * @param listOfJobsResult
      */
-    fun onConnectResult(listOfJobsResult: ArrayList<DeviceManagerJobResult>)
+    fun onConnectResult(listOfJobsResult: List<DeviceManagerJobResult>)
 
     /**
      * onDisconnectResult returns result of device manager's disconnect instruction
@@ -19,5 +19,5 @@ interface DeviceManagerConnectListener {
      * This callback is fired only once after finishing instruction on all printer
      * @param listOfJobsResult
      */
-    fun onDisconnectResult(listOfJobsResult: ArrayList<DeviceManagerJobResult>)
+    fun onDisconnectResult(listOfJobsResult: List<DeviceManagerJobResult>)
 }

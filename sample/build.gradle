@@ -11,6 +11,10 @@ android {
         versionCode appVersionCode
         versionName appVersionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        ndk {
+            // Remove unused architectures to optimize APK size
+            abiFilters 'x86', 'x86_64', 'armeabi', 'armeabi-v7a', 'arm64-v8a'
+        }
     }
     compileOptions {
         sourceCompatibility versions.sourceCompat
@@ -44,6 +48,7 @@ dependencies {
     implementation deps.compat.constraintLayout
     implementation deps.ui.recyclerView
     debugImplementation deps.leakCanary
+    implementation deps.log.timber
 
     api project(':printer')
     // Replace "api project(':printer')" by this line to call printer library from external

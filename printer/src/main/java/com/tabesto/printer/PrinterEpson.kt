@@ -37,6 +37,7 @@ import com.tabesto.printer.writer.PrinterWriterListener
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -165,7 +166,7 @@ class PrinterEpson constructor(override var printerData: PrinterData, override v
                 printer.setReceiveEventListener(this@PrinterEpson)
                 printer.setStatusChangeEventListener(this@PrinterEpson)
                 printer.startMonitor()
-                printerConnectListener!!.onConnectSuccess(printerData)
+                printerConnectListener?.onConnectSuccess(printerData)
             } catch (epos2Exception: Epos2Exception) {
                 val printerError: PrinterError = if (epos2Exception.errorStatus == EposException.EPOS_EXCEPTION_ERR_ILLEGAL.codeInt) {
                     PrinterError.getPrinterException(epos2Exception.errorStatus, ScopeTag.CONNECT)
@@ -280,6 +281,10 @@ class PrinterEpson constructor(override var printerData: PrinterData, override v
             val statusInfo = printer.status
             printerStatusListener?.onStatusReceived(printerData, PrinterStatus(statusInfo))
         }
+    }
+
+    override fun cancelAllJob() {
+        CoroutineScope(dispatcher).cancel()
     }
 
     /**

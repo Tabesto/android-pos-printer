@@ -26,12 +26,12 @@ class JobResultListDialog : DialogFragment(), JobResultListAdapterListener {
     private var listener: JobResultListDialogListener? = null
 
     fun newInstance(
-        listOfHistoryJobsResult: ArrayList<DeviceManagerJobResult>,
+        listOfHistoryJobsResult: List<DeviceManagerJobResult>,
         isClearListButtonEnabled: Boolean = false
     ): JobResultListDialog {
         return JobResultListDialog().apply {
             arguments = Bundle().apply {
-                putParcelableArrayList(listOfHistoryJobsResultTag, listOfHistoryJobsResult)
+                putParcelableArrayList(listOfHistoryJobsResultTag, ArrayList(listOfHistoryJobsResult))
                 putBoolean(isClearListButtonEnabledTag, isClearListButtonEnabled)
             }
         }
@@ -47,8 +47,8 @@ class JobResultListDialog : DialogFragment(), JobResultListAdapterListener {
     override fun onViewCreated(view: View, @Nullable savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val listOfHistoryJobsResult: ArrayList<DeviceManagerJobResult> =
-            arguments?.getSerializable(listOfHistoryJobsResultTag) as ArrayList<DeviceManagerJobResult>
+        val listOfHistoryJobsResult: List<DeviceManagerJobResult> =
+            arguments?.getParcelableArrayList<DeviceManagerJobResult>(listOfHistoryJobsResultTag) as List<DeviceManagerJobResult>
         val isClearListButtonEnabled = arguments?.getBoolean(isClearListButtonEnabledTag)
 
         jobResultListRecyclerView = view.findViewById(R.id.recyclerViewJobResultList)

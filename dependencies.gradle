@@ -9,7 +9,7 @@ ext.versions = [
         versionNameMinor               : 0,
         versionNamePatch               : 0,
         versionNamePreReleaseClassifier: "beta",
-        versionNamePreReleaseNumber    : 2,
+        versionNamePreReleaseNumber    : 3,
         isSnapshot                     : false,
         buildTools                     : '30.0.2',
         androidGradleVersion           : '4.0.2',
@@ -82,11 +82,11 @@ def githubPackagesRepo = "android-pos-printer"
 
 ext.artifact = [
 //        groupId           : "com.tabesto",
-        groupId           : "com.github.Tabesto",
-        artifactId        : "pos-printer",
-        libraryName       : "Android POS Printer",
-        libraryDescription: "Android Library to use POS printers",
-        githubPackagesPath: "https://maven.pkg.github.com/$githubPackagesUser/$githubPackagesRepo",
+groupId           : "com.github.Tabesto",
+artifactId        : "pos-printer",
+libraryName       : "Android POS Printer",
+libraryDescription: "Android Library to use POS printers",
+githubPackagesPath: "https://maven.pkg.github.com/$githubPackagesUser/$githubPackagesRepo",
 ]
 
 ext.appVersionName = generateVersionName()

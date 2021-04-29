@@ -6,11 +6,11 @@ package com.tabesto.printer.model.ticket
  *
  * @param ticketLineList
  */
-class TicketData(var ticketLineList: ArrayList<TicketLine> = ArrayList()) {
+class TicketData(var ticketLineList: MutableList<TicketLine> = mutableListOf()) {
     constructor (ticketDataBuilder: TicketDataBuilder) : this(ticketDataBuilder.ticketLineList)
 
     class TicketDataBuilder {
-        var ticketLineList: ArrayList<TicketLine> = ArrayList()
+        var ticketLineList: MutableList<TicketLine> = mutableListOf()
             private set
 
         /**
