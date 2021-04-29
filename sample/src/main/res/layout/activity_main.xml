@@ -21,7 +21,7 @@
             android:drawablePadding="12dp"
             android:hint="@string/main_bluetooth_address_default_second"
             android:inputType="text"
-            android:text="@string/main_bluetooth_address_default_second"
+            android:text="@string/main_tcp_address_first"
             app:layout_constraintBottom_toTopOf="@+id/buttonConnectPrintManual"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
@@ -154,10 +154,23 @@
             android:layout_height="wrap_content"
             android:onClick="showManagedPrinterList"
             android:text="@string/main_get_managed_printer_list"
-            app:layout_constraintBottom_toTopOf="@+id/buttonStartExampleActivity"
+            app:layout_constraintBottom_toTopOf="@+id/buttonShowRemainingJobList"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/buttonShowJobResultArchive"
+            app:layout_constraintVertical_chainStyle="spread_inside" />
+
+        <Button
+            android:id="@+id/buttonShowRemainingJobList"
+            style="@style/PrinterButtonPrimary"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="showManagedPrinterList"
+            android:text="@string/main_get_remaining_job_list"
+            app:layout_constraintBottom_toTopOf="@+id/buttonStartExampleActivity"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/buttonShowManagedPrinterList"
             app:layout_constraintVertical_chainStyle="spread_inside" />
 
         <Button
@@ -170,7 +183,7 @@
             app:layout_constraintBottom_toTopOf="@+id/progressBar"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/buttonShowManagedPrinterList"
+            app:layout_constraintTop_toBottomOf="@+id/buttonShowRemainingJobList"
             app:layout_constraintVertical_chainStyle="spread_inside" />
 
         <ProgressBar

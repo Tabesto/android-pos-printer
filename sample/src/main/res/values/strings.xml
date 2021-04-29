@@ -3,6 +3,7 @@
     <string name="main_bluetooth_address_default">BT:00:01:90:BE:3D:F2</string>
     <string name="main_bluetooth_address_default_second">BT:00:01:90:BE:3D:69</string>
     <string name="main_tcp_address_default">TCP:192.168.1.116</string>
+    <string name="main_tcp_address_first">TCP:172.16.1.241</string>
     <string name="main_connect_print_auto_mode">Connect &amp; print in auto mode</string>
     <string name="main_connect_manual_mode">Connect in manual mode</string>
     <string name="main_print_manual_mode">Print in manual mode</string>
@@ -15,23 +16,25 @@
     <string name="main_get_status">Get printer status</string>
     <string name="main_get_job_history_list">Get Jobs Results History</string>
     <string name="main_get_managed_printer_list">Get Managed Printer List</string>
+    <string name="main_get_remaining_job_list">Get Remaining Job List</string>
     <string name="main_start_exampleActivity">Start ExampleActivity</string>
 
-    <string name="job_succeed">SUCCEED</string>
-    <string name="job_failed">FAILED</string>
-    <string name="printer_connected">CONNECTED</string>
-    <string name="printer_disconnected">DISCONNECTED</string>
+    <string name="job_succeed">Succeed</string>
+    <string name="job_failed">Failed</string>
+    <string name="printer_connected">Connected</string>
+    <string name="printer_disconnected">Disconnected</string>
 
-    <string name="clear_list_button">CLEAR LIST</string>
-    <string name="close_button">CLOSE</string>
-    <string name="error_code">CODE</string>
-    <string name="error_message">MESSAGE</string>
-    <string name="error_action">ACTION</string>
-    <string name="printer_address">PRINTER ADDRESS</string>
-    <string name="printer_status">STATUS</string>
-    <string name="date">DATE</string>
-    <string name="scope">SCOPE</string>
-    <string name="result">RESULT</string>
+    <string name="clear_list_button">Clear list</string>
+    <string name="cancel_remaining_jobs_button">Cancel all jobs and unlock</string>
+    <string name="close_button">Close</string>
+    <string name="error_code">Code</string>
+    <string name="error_message">Message</string>
+    <string name="error_action">Action</string>
+    <string name="printer_address">Printer address</string>
+    <string name="printer_status">Status</string>
+    <string name="date">Date</string>
+    <string name="scope">Scope</string>
+    <string name="result">Result</string>
 
     <string name="job_result_error_printer_address">Printer Address : %1$s</string>
     <string name="job_result_error_scope">Scope : %1$s</string>

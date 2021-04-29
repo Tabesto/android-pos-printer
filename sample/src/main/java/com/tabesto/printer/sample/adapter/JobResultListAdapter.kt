@@ -10,9 +10,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.tabesto.printer.model.devicemanager.DeviceManagerJobResult
 import com.tabesto.printer.sample.R
 
-class JobResultListAdapter(listOfHistoryJobsResult: ArrayList<DeviceManagerJobResult>, val listener: JobResultListAdapterListener) :
+class JobResultListAdapter(listOfHistoryJobsResult: List<DeviceManagerJobResult>, val listener: JobResultListAdapterListener) :
     RecyclerView.Adapter<JobResultListAdapter.ViewHolder>() {
-    private val listOfJobsResult: ArrayList<DeviceManagerJobResult> = listOfHistoryJobsResult
+    private val listOfJobsResult: List<DeviceManagerJobResult> = listOfHistoryJobsResult
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         var jobDateTime: TextView = view.findViewById(R.id.textView_job_timestamp)

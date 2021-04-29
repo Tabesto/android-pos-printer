@@ -27,5 +27,5 @@ interface DeviceManagerListener {
      *
      * @return
      */
-    fun onListOfPrinterManagedReceived(listOfPrinterDataAndPrinterStatus: MutableList<PrinterManaged>)
+    fun onListOfPrinterManagedReceived(listOfPrinterDataAndPrinterStatus: List<PrinterManaged>)
 }

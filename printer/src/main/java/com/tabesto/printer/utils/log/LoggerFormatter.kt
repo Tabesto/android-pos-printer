@@ -8,7 +8,7 @@ import com.tabesto.printer.model.status.PrinterStatus
 class LoggerFormatter(className: String) {
     var printerDataFullLogIsEnabled: Boolean = false
     var printerStatusFullLogIsEnabled: Boolean = false
-    var listLoggerBodyContent: ArrayList<LoggerExtraArgument> = ArrayList()
+    var listLoggerBodyContent: MutableList<LoggerExtraArgument> = mutableListOf()
     var printerException: PrinterException? = null
     var loggerIsEnabled: Boolean = true
     private val loggerWriter = LoggerWriter(className)
@@ -100,13 +100,10 @@ class LoggerFormatter(className: String) {
         }
     }
 
-    private fun addExtraArgListInBody(
-        vararg loggerExtraArg: LoggerExtraArgument
-    ) {
-        for (arg in loggerExtraArg) {
-            arg.name = replaceSpaceByMiddleDash(arg.name)
-            listLoggerBodyContent.add(LoggerExtraArgument("${argPrefix}${arg.name}", arg.value))
-        }
+    private fun addExtraArgListInBody(vararg loggerExtraArg: LoggerExtraArgument) {
+        listLoggerBodyContent = loggerExtraArg.map { arg ->
+            LoggerExtraArgument("${argPrefix}${replaceSpaceByMiddleDash(arg.name)}", arg.value)
+        }.toMutableList()
     }
 
     private fun replaceSpaceByMiddleDash(textToModify: String): String {

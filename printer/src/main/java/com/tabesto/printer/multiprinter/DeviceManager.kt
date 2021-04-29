@@ -2,6 +2,7 @@ package com.tabesto.printer.multiprinter
 
 import android.content.Context
 import com.tabesto.printer.model.PrinterData
+import com.tabesto.printer.model.PrinterRemainingJob
 import com.tabesto.printer.model.devicemanager.DeviceManagerJobResult
 import com.tabesto.printer.model.ticket.TicketData
 
@@ -27,7 +28,7 @@ interface DeviceManager {
      * @param listOfPrinterData
      * @param context
      */
-    fun initializePrinter(listOfPrinterData: ArrayList<PrinterData>, context: Context)
+    fun initializePrinter(listOfPrinterData: List<PrinterData>, context: Context)
 
     /**
      * Set Listener to receive callback from [DeviceManagerInitListener]
@@ -95,7 +96,7 @@ interface DeviceManager {
      * This method must be called after initialization else it will fire a device manager error callback
      * @param listOfPrinterData
      */
-    fun connectPrinter(listOfPrinterData: ArrayList<PrinterData>)
+    fun connectPrinter(listOfPrinterData: List<PrinterData>)
 
     /**
      * connect all managed printer
@@ -116,7 +117,7 @@ interface DeviceManager {
      * @param listOfPrinterData
      * @param ticketData
      */
-    fun printData(listOfPrinterData: ArrayList<PrinterData>, ticketData: TicketData)
+    fun printData(listOfPrinterData: List<PrinterData>, ticketData: TicketData)
 
     /**
      * This method will print the ticket on all managed printer
@@ -136,7 +137,7 @@ interface DeviceManager {
      *
      * @param listOfPrinterData
      */
-    fun disconnectPrinter(listOfPrinterData: ArrayList<PrinterData>)
+    fun disconnectPrinter(listOfPrinterData: List<PrinterData>)
 
     /**
      * This method will disconnect all managed printer
@@ -172,7 +173,7 @@ interface DeviceManager {
      *
      * @return
      */
-    fun getJobsResultHistoryList(): ArrayList<DeviceManagerJobResult>
+    fun getJobsResultHistoryList(): List<DeviceManagerJobResult>
 
     /**
      * this method will give the possibility to clear the history of job result list
@@ -195,6 +196,19 @@ interface DeviceManager {
      * @param printerData
      */
     fun removePrinter(printerData: PrinterData): Boolean
+
+    /**
+     * This method will cancel all background jobs running on each printer
+     * and unlock main job
+     *
+     */
+    fun cancelAllJobsAndUnlock()
+
+    /**
+     * This method will return the list of background jobs still in progress
+     *
+     */
+    fun getListOfRemainingJobs(): List<PrinterRemainingJob>
 
     // region MOVE_DISCOVERY
     fun restartBluetoothAndLaunchDiscovery(printerData: PrinterData, delayMillis: Long = 0)

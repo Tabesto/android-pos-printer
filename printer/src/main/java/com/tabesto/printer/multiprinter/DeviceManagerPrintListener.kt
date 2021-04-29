@@ -11,5 +11,5 @@ interface DeviceManagerPrintListener {
      * This callback will be fired as many times as there is a print data instruction in entry
      * @param listOfJobsResult
      */
-    fun onPrintResult(listOfJobsResult: ArrayList<DeviceManagerJobResult>)
+    fun onPrintResult(listOfJobsResult: List<DeviceManagerJobResult>)
 }

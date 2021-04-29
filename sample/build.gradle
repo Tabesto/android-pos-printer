@@ -44,6 +44,7 @@ dependencies {
     implementation deps.compat.constraintLayout
     implementation deps.ui.recyclerView
     debugImplementation deps.leakCanary
+    implementation deps.log.timber
 
     api project(':printer')
     // Replace "api project(':printer')" by this line to call printer library from external

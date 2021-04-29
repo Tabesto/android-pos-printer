@@ -1,5 +1,6 @@
 package com.tabesto.printer.sample
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.os.Bundle
@@ -10,13 +11,6 @@ import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.tabesto.printer.multiprinter.DeviceManager
-import com.tabesto.printer.multiprinter.DeviceManagerConnectListener
-import com.tabesto.printer.multiprinter.DeviceManagerDiscoveryListener
-import com.tabesto.printer.multiprinter.DeviceManagerImpl
-import com.tabesto.printer.multiprinter.DeviceManagerInitListener
-import com.tabesto.printer.multiprinter.DeviceManagerListener
-import com.tabesto.printer.multiprinter.DeviceManagerPrintListener
 import com.tabesto.printer.model.ConnectionMode
 import com.tabesto.printer.model.PrinterData
 import com.tabesto.printer.model.PrinterManaged
@@ -34,22 +28,34 @@ import com.tabesto.printer.model.ticket.StringLine
 import com.tabesto.printer.model.ticket.StyleLine
 import com.tabesto.printer.model.ticket.TicketData
 import com.tabesto.printer.model.ticket.TicketData.TicketDataBuilder
+import com.tabesto.printer.multiprinter.DeviceManager
+import com.tabesto.printer.multiprinter.DeviceManagerConnectListener
+import com.tabesto.printer.multiprinter.DeviceManagerDiscoveryListener
+import com.tabesto.printer.multiprinter.DeviceManagerImpl
+import com.tabesto.printer.multiprinter.DeviceManagerInitListener
+import com.tabesto.printer.multiprinter.DeviceManagerListener
+import com.tabesto.printer.multiprinter.DeviceManagerPrintListener
 import com.tabesto.printer.multiprinter.DeviceManagerStatusListener
 import com.tabesto.printer.sample.dialog.DialogPrinterErrorDetails
 import com.tabesto.printer.sample.dialog.JobResultListDialog
 import com.tabesto.printer.sample.dialog.JobResultListDialogListener
 import com.tabesto.printer.sample.dialog.PrinterManagedListDialog
 import com.tabesto.printer.sample.dialog.PrinterManagedListDialogListener
+import com.tabesto.printer.sample.dialog.RemainingJobListDialog
+import com.tabesto.printer.sample.dialog.RemainingJobListDialogListener
+import timber.log.Timber
 
+@SuppressLint("LogNotTimber")
 class MainActivity : AppCompatActivity(), DeviceManagerListener,
     DeviceManagerConnectListener, DeviceManagerPrintListener,
     DeviceManagerInitListener, DeviceManagerDiscoveryListener, JobResultListDialogListener, PrinterManagedListDialogListener,
-    DeviceManagerStatusListener {
+    DeviceManagerStatusListener, RemainingJobListDialogListener {
     private lateinit var deviceManager: DeviceManager
     private var printerData: PrinterData? = null
     private var progressBar: ProgressBar? = null
     private var addressEditText: EditText? = null
     private var ticketData: TicketData? = null
+    private var buttonShowRemainingJobList: Button? = null
     private val listOfButtons = listOf(
         R.id.buttonDisconnectManual,
         R.id.buttonLaunchDiscovery,
@@ -68,12 +74,32 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        progressBar = findViewById(R.id.progressBar)
-        addressEditText = findViewById(R.id.editTextAddress)
+        initializeWidget()
+
+        setupView()
 
         buildTicketData()
 
+        initializeLog()
+
         deviceManager = DeviceManagerImpl.getInstance()
+    }
+
+    private fun initializeLog() {
+        if (BuildConfig.DEBUG) {
+            Timber.plant(Timber.DebugTree())
+        }
+    }
+
+    private fun initializeWidget() {
+        progressBar = findViewById(R.id.progressBar)
+        addressEditText = findViewById(R.id.editTextAddress)
+
+        buttonShowRemainingJobList = findViewById(R.id.buttonShowRemainingJobList)
+    }
+
+    private fun setupView() {
+        buttonShowRemainingJobList?.setOnClickListener { showRemainingJobListDialog() }
     }
 
     override fun onResume() {
@@ -282,7 +308,7 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
         deviceManager.getManagedPrinterDataAndStatusList()
     }
 
-    override fun onListOfPrinterManagedReceived(listOfPrinterDataAndPrinterStatus: MutableList<PrinterManaged>) {
+    override fun onListOfPrinterManagedReceived(listOfPrinterDataAndPrinterStatus: List<PrinterManaged>) {
         runOnUiThread {
             hideProgressBar()
             enableButtons(true)
@@ -303,10 +329,10 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
     }
 
     private fun openDialogWithJobResultList(
-        listOfJobsResult: ArrayList<DeviceManagerJobResult>? = null,
+        listOfJobsResult: List<DeviceManagerJobResult>? = null,
         canEnableClearListButton: Boolean = false
     ) {
-        val list: ArrayList<DeviceManagerJobResult> = listOfJobsResult ?: deviceManager.getJobsResultHistoryList()
+        val list: List<DeviceManagerJobResult> = listOfJobsResult ?: deviceManager.getJobsResultHistoryList()
 
         if (list.isNotEmpty()) {
             val dialogJobsResultList = JobResultListDialog().newInstance(list, canEnableClearListButton)
@@ -359,7 +385,7 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
         }
     }
 
-    override fun onConnectResult(listOfJobsResult: ArrayList<DeviceManagerJobResult>) {
+    override fun onConnectResult(listOfJobsResult: List<DeviceManagerJobResult>) {
         for (jobResult in listOfJobsResult) {
             if (jobResult.isSuccessful) {
                 Log.d(TAG, "successfully connected ${jobResult.printerData.printerAddress}")
@@ -383,7 +409,7 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
         }
     }
 
-    override fun onDisconnectResult(listOfJobsResult: ArrayList<DeviceManagerJobResult>) {
+    override fun onDisconnectResult(listOfJobsResult: List<DeviceManagerJobResult>) {
         for (jobResult in listOfJobsResult) {
             if (jobResult.isSuccessful) {
                 Log.d(TAG, "successfully disconnected ${jobResult.printerData.printerAddress}")
@@ -408,7 +434,7 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
         }
     }
 
-    override fun onPrintResult(listOfJobsResult: ArrayList<DeviceManagerJobResult>) {
+    override fun onPrintResult(listOfJobsResult: List<DeviceManagerJobResult>) {
         for (jobResult in listOfJobsResult) {
             if (jobResult.isSuccessful) {
                 Log.d(TAG, "successfully print  ${jobResult.printerData.printerAddress}")
@@ -505,10 +531,6 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
         }
     }
 
-    companion object {
-        private val TAG = MainActivity::class.java.simpleName
-    }
-
     override fun onStatusUpdate(printerData: PrinterData, status: String) {
         Log.d(TAG, "on status update received fir printer  ${printerData.printerAddress} $status")
     }
@@ -534,5 +556,22 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
                 Toast.LENGTH_LONG
             )
         }
+    }
+
+    private fun showRemainingJobListDialog() {
+        val listOfRemainingJob = deviceManager.getListOfRemainingJobs()
+        val remainingJobListDialog = RemainingJobListDialog.newInstance(listOfRemainingJob)
+        remainingJobListDialog.show(supportFragmentManager, "RemainingJobListDialog")
+    }
+
+    override fun onCancelJobs() {
+        deviceManager.cancelAllJobsAndUnlock()
+        showToast("All jobs have been canceled !")
+        enableButtons(true)
+        hideProgressBar()
+    }
+
+    companion object {
+        private val TAG = MainActivity::class.java.simpleName
     }
 }

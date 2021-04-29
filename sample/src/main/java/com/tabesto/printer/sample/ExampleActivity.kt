@@ -1,9 +1,9 @@
 package com.tabesto.printer.sample
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import com.tabesto.printer.model.PrinterManaged
 import com.tabesto.printer.model.ScopeTag
 import com.tabesto.printer.model.devicemanager.DeviceManagerJobResult
@@ -47,7 +47,7 @@ class ExampleActivity : AppCompatActivity(), DeviceManagerListener {
         // Do nothing
     }
 
-    override fun onListOfPrinterManagedReceived(listOfPrinterDataAndPrinterStatus: MutableList<PrinterManaged>) {
+    override fun onListOfPrinterManagedReceived(listOfPrinterDataAndPrinterStatus: List<PrinterManaged>) {
         runOnUiThread {
             if (listOfPrinterDataAndPrinterStatus.isNotEmpty()) {
                 val dialogPrinterDataAndStatusList = PrinterManagedListDialog().newInstance(listOfPrinterDataAndPrinterStatus)

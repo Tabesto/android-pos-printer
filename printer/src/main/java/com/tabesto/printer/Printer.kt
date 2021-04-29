@@ -108,4 +108,10 @@ interface Printer {
      *  This method returns the [PrinterStatus] of current printer by the callback onStatusReceived
      */
     fun getStatus()
+
+    /**
+     * This method will cancel all background job in progress
+     *
+     */
+    fun cancelAllJob()
 }
