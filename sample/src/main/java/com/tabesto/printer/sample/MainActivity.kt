@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
@@ -117,7 +116,7 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
                 )
 
             printerData?.let { data ->
-                Log.d(TAG, " just before initialize object ")
+                Timber.d(TAG, " just before initialize object ")
                 deviceManager.initializePrinter(data, this)
             }
         }
@@ -163,7 +162,7 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
     @Suppress("UNUSED_PARAMETER")
     fun connectInManualMode(view: View) {
         addressEditText?.text?.toString()?.let { address ->
-            Log.d(TAG, " onClick print printReceiptInManualMode ")
+            Timber.d(TAG, " onClick print printReceiptInManualMode ")
             showProgressBar()
             enableButtons(false)
             printerData =
@@ -176,7 +175,7 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
                 )
 
             printerData?.let { data ->
-                Log.d(TAG, " just before initialize object ")
+                Timber.d(TAG, " just before initialize object ")
                 deviceManager.initializePrinter(data, this)
                 deviceManager.connectPrinter(data)
             }
@@ -185,7 +184,7 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
 
     @Suppress("UNUSED_PARAMETER")
     fun launchPrintManual(view: View) {
-        Log.d(TAG, " onClick print printReceiptInManualMode ")
+        Timber.d(TAG, " onClick print printReceiptInManualMode ")
 
         addressEditText?.text?.toString()?.let { address ->
             showProgressBar()
@@ -201,7 +200,7 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
                 )
 
             ticketData?.let { ticketData ->
-                Log.d(TAG, " onClick print launchPrintManual")
+                Timber.d(TAG, " onClick print launchPrintManual")
                 deviceManager.printData(printerData, ticketData)
             }
 
@@ -212,7 +211,7 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
     fun launchPrintOnAllPrinter(view: View) {
         showProgressBar()
         enableButtons(false)
-        Log.d(TAG, " onClick print launchPrintOnAllPrinter")
+        Timber.d(TAG, " onClick print launchPrintOnAllPrinter")
         ticketData?.let { ticketData ->
             deviceManager.printData(ticketData = ticketData)
         }
@@ -220,7 +219,7 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
 
     @Suppress("UNUSED_PARAMETER")
     fun disconnectPrinterInManualMode(view: View) {
-        Log.d(TAG, " onClick print disconnectPrinterInManualMode ")
+        Timber.d(TAG, " onClick print disconnectPrinterInManualMode ")
         addressEditText?.text?.toString()?.let { address ->
             showProgressBar()
             enableButtons(false)
@@ -242,13 +241,13 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
     fun disconnectAllPrinter(view: View) {
         showProgressBar()
         enableButtons(false)
-        Log.d(TAG, " onClick  disconnectAllPrinter")
+        Timber.d(TAG, " onClick  disconnectAllPrinter")
         deviceManager.disconnectPrinter()
     }
 
     @Suppress("UNUSED_PARAMETER")
     fun launchDiscovery(view: View) {
-        Log.d(TAG, " onClick launchDiscovery ")
+        Timber.d(TAG, " onClick launchDiscovery ")
         showProgressBar()
         enableButtons(false)
         try {
@@ -256,7 +255,7 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
                 deviceManager.restartBluetoothAndLaunchDiscovery(printerData)
             }
         } catch (exception: Exception) {
-            Log.e(TAG, "an error happened while trying to discover printer in activity ${exception.message}")
+            Timber.e(TAG, "an error happened while trying to discover printer in activity ${exception.message}")
             hideProgressBar()
             showToast("an error happened while trying to discover printer in main activity ")
         }
@@ -264,14 +263,14 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
 
     @Suppress("UNUSED_PARAMETER")
     fun stopDiscovery(view: View) {
-        Log.d(TAG, " onClick stopDiscovery ")
+        Timber.d(TAG, " onClick stopDiscovery ")
         try {
             showProgressBar()
             printerData?.let { printerData ->
                 deviceManager.stopDiscovery(printerData)
             }
         } catch (e: Exception) {
-            Log.e(TAG, "an error happened while trying to stop discovering  printer in main activity " + e.message)
+            Timber.e(TAG, "an error happened while trying to stop discovering  printer in main activity " + e.message)
             hideProgressBar()
             enableButtons(true)
             showToast("an error happened while trying to stop discovering printer in main activity ")
@@ -343,12 +342,12 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
     }
 
     private fun showProgressBar() {
-        Log.d(TAG, " show progress bar")
+        Timber.d(TAG, " show progress bar")
         progressBar?.visibility = View.VISIBLE
     }
 
     private fun hideProgressBar() {
-        Log.d(TAG, " hide progress bar")
+        Timber.d(TAG, " hide progress bar")
         progressBar?.visibility = View.INVISIBLE
     }
 
@@ -360,7 +359,7 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
     }
 
     override fun onDeviceManagerErrorForAJobResult(deviceManagerJobResult: DeviceManagerJobResult, isLastReturnOfJob: Boolean) {
-        Log.e(
+        Timber.e(
             TAG,
             "onDeviceManagerErrorForAJobResult message " +
                 "${deviceManagerJobResult.printerData.printerAddress} ${deviceManagerJobResult.deviceManagerException?.error}"
@@ -377,7 +376,7 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
     }
 
     override fun onListOfPrintersEmpty(scope: ScopeTag) {
-        Log.d(TAG, " in onListOfPrintersEmpty in ${scope.name}")
+        Timber.d(TAG, " in onListOfPrintersEmpty in ${scope.name}")
         runOnUiThread {
             hideProgressBar()
             showToast(" there is no printer managed ")
@@ -388,12 +387,12 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
     override fun onConnectResult(listOfJobsResult: List<DeviceManagerJobResult>) {
         for (jobResult in listOfJobsResult) {
             if (jobResult.isSuccessful) {
-                Log.d(TAG, "successfully connected ${jobResult.printerData.printerAddress}")
+                Timber.d(TAG, "successfully connected ${jobResult.printerData.printerAddress}")
                 runOnUiThread {
                     showToast("successfully connected")
                 }
             } else {
-                Log.e(
+                Timber.e(
                     TAG,
                     "onConnectFailure error message ${jobResult.printerData.printerAddress} : ${jobResult.printerException?.message}"
                 )
@@ -412,12 +411,12 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
     override fun onDisconnectResult(listOfJobsResult: List<DeviceManagerJobResult>) {
         for (jobResult in listOfJobsResult) {
             if (jobResult.isSuccessful) {
-                Log.d(TAG, "successfully disconnected ${jobResult.printerData.printerAddress}")
+                Timber.d(TAG, "successfully disconnected ${jobResult.printerData.printerAddress}")
                 runOnUiThread {
                     showToast("successfully disconnected")
                 }
             } else {
-                Log.e(
+                Timber.e(
                     TAG,
                     "onFailureDisconnectPrinter error message ${jobResult.printerData.printerAddress} : ${jobResult.printerException?.message}"
                 )
@@ -437,12 +436,15 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
     override fun onPrintResult(listOfJobsResult: List<DeviceManagerJobResult>) {
         for (jobResult in listOfJobsResult) {
             if (jobResult.isSuccessful) {
-                Log.d(TAG, "successfully print  ${jobResult.printerData.printerAddress}")
+                Timber.d(TAG, "successfully print  ${jobResult.printerData.printerAddress}")
                 runOnUiThread {
                     showToast("jobs printed successfully")
                 }
             } else {
-                Log.e(TAG, "onPrintFailure error message ${jobResult.printerData.printerAddress} : ${jobResult.printerException?.message}")
+                Timber.e(
+                    TAG,
+                    "onPrintFailure error message ${jobResult.printerData.printerAddress} : ${jobResult.printerException?.message}"
+                )
                 runOnUiThread {
                     showToast("An error happen while trying to print ticket ")
                 }
@@ -457,7 +459,7 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
     }
 
     override fun onInitPrinterFailure(printerData: PrinterData, printerException: PrinterException) {
-        Log.e(TAG, "onInitPrinterFailure error message ${printerData.printerAddress} : ${printerException.message}")
+        Timber.e(TAG, "onInitPrinterFailure error message ${printerData.printerAddress} : ${printerException.message}")
 
         runOnUiThread {
             hideProgressBar()
@@ -467,15 +469,15 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
     }
 
     override fun onDiscoveryFinish(printerData: PrinterData, isAvailable: Boolean) {
-        Log.d(TAG, "onFinishDiscovery")
+        Timber.d(TAG, "onFinishDiscovery")
         runOnUiThread {
-            Log.d(TAG, " onFinishDiscovery ")
+            Timber.d(TAG, " onFinishDiscovery ")
             hideProgressBar()
             if (isAvailable) {
-                Log.d(TAG, " true ")
+                Timber.d(TAG, " true ")
                 showToast(" Yeah printer is available ! ${printerData.printerAddress}")
             } else {
-                Log.d(TAG, " false ")
+                Timber.d(TAG, " false ")
                 showToast(" Oh No printer is not available ! ${printerData.printerAddress}")
             }
             enableButtons(true)
@@ -483,7 +485,7 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
     }
 
     override fun onDiscoveryFailure(printerData: PrinterData, printerException: PrinterException) {
-        Log.d(TAG, "onFailureDiscovery" + printerException.message)
+        Timber.d(TAG, "onFailureDiscovery" + printerException.message)
         runOnUiThread {
             hideProgressBar()
             showToast(" an error occurred while discovering printer  ${printerData.printerAddress}")
@@ -492,12 +494,12 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
     }
 
     override fun onDiscoveryStopSuccess(printerData: PrinterData) {
-        Log.d(TAG, "onDiscoveryStoppedSuccessfully  ${printerData.printerAddress}")
+        Timber.d(TAG, "onDiscoveryStoppedSuccessfully  ${printerData.printerAddress}")
         hideProgressBar()
     }
 
     override fun onBluetoothRestartSuccess(printerData: PrinterData) {
-        Log.d(TAG, "onBluetoothRestartedSuccessfully")
+        Timber.d(TAG, "onBluetoothRestartedSuccessfully")
         showToast(" Bluetooth is restarted successfully ${printerData.printerAddress}")
         enableButtons(true)
     }
@@ -532,7 +534,7 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
     }
 
     override fun onStatusUpdate(printerData: PrinterData, status: String) {
-        Log.d(TAG, "on status update received fir printer  ${printerData.printerAddress} $status")
+        Timber.d(TAG, "on status update received fir printer  ${printerData.printerAddress} $status")
     }
 
     override fun onStatusReceived(printerData: PrinterData, printerStatus: PrinterStatus) {

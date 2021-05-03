@@ -4,7 +4,7 @@ import com.tabesto.printer.utils.EposPrinter
 import com.tabesto.printer.writer.PrinterWriter
 import dagger.Module
 import dagger.Provides
-import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestCoroutineDispatcher
 
@@ -25,7 +25,7 @@ class PrinterEpsonModuleTest(
 
     @ExperimentalCoroutinesApi
     @Provides
-    fun providesDispatcher(): CoroutineDispatcher {
-        return TestCoroutineDispatcher()
+    fun providesCoroutineScope(): CoroutineScope {
+        return CoroutineScope(TestCoroutineDispatcher())
     }
 }

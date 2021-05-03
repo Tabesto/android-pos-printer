@@ -11,12 +11,8 @@ import kotlinx.coroutines.Dispatchers
 class DeviceManagerModule {
 
     @Provides
-    fun providesListOfPrinterData(): HashMap<PrinterData, Printer> {
-        return HashMap()
-    }
+    fun providesListOfPrinterData(): HashMap<PrinterData, Printer> = HashMap()
 
     @Provides
-    fun providesDispatcher(): CoroutineDispatcher {
-        return Dispatchers.IO
-    }
+    fun providesDispatcher(): CoroutineDispatcher = Dispatchers.IO
 }

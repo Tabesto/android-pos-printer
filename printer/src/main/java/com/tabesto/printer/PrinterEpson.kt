@@ -6,12 +6,15 @@ import com.epson.epos2.Epos2Exception
 import com.epson.epos2.printer.PrinterStatusInfo
 import com.epson.epos2.printer.ReceiveListener
 import com.epson.epos2.printer.StatusChangeListener
+import com.tabesto.printer.dagger.DaggerPrinterEpsonComponent
+import com.tabesto.printer.dagger.PrinterEpsonModule
 import com.tabesto.printer.discovery.Discovery
 import com.tabesto.printer.discovery.DiscoveryFactory
 import com.tabesto.printer.discovery.DiscoveryListener
 import com.tabesto.printer.model.ConnectionMode
 import com.tabesto.printer.model.DiscoveryData
 import com.tabesto.printer.model.PrinterData
+import com.tabesto.printer.model.PrinterLogInfo
 import com.tabesto.printer.model.ScopeTag
 import com.tabesto.printer.model.error.EposException
 import com.tabesto.printer.model.error.PrinterCallbackCode
@@ -25,19 +28,15 @@ import com.tabesto.printer.system.BluetoothHelperListener
 import com.tabesto.printer.utils.AppExceptionHandler
 import com.tabesto.printer.utils.EposPrinter
 import com.tabesto.printer.utils.EposStatusMessageManager
-import com.tabesto.printer.dagger.DaggerPrinterEpsonComponent
-import com.tabesto.printer.dagger.DaggerPrinterEpsonDefaultComponent
-import com.tabesto.printer.dagger.PrinterEpsonDefaultModule
-import com.tabesto.printer.dagger.PrinterEpsonModule
-import com.tabesto.printer.model.PrinterLogInfo
 import com.tabesto.printer.utils.log.Logger
 import com.tabesto.printer.utils.log.LoggerExtraArgument
 import com.tabesto.printer.writer.PrinterWriter
 import com.tabesto.printer.writer.PrinterWriterListener
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -69,7 +68,7 @@ class PrinterEpson constructor(override var printerData: PrinterData, override v
     lateinit var printerWriter: PrinterWriter
 
     @Inject
-    lateinit var dispatcher: CoroutineDispatcher
+    lateinit var coroutineScope: CoroutineScope
 
     private val coroutineExceptionHandler = CoroutineExceptionHandler { _, exception ->
         lateinit var printerException: PrinterException
@@ -93,9 +92,9 @@ class PrinterEpson constructor(override var printerData: PrinterData, override v
         discoveryData?.let { discovery = DiscoveryFactory().getDiscovery(it) }
 
         // Default injection of EposPrinter in order to avoid crash null pointer because it is a late init for injection
-        DaggerPrinterEpsonDefaultComponent.builder().printerEpsonDefaultModule(
-            PrinterEpsonDefaultModule(
-                context = context,
+        DaggerPrinterEpsonComponent.builder().printerEpsonModule(
+            PrinterEpsonModule(
+                context = this.context,
                 printerWriterListener = this
             )
         )
@@ -115,7 +114,13 @@ class PrinterEpson constructor(override var printerData: PrinterData, override v
         // this will avoid the program to have a zombie flux opened to another printer address
         if (printerStatus.connectionStatus.isConnected == false) {
             try {
-                DaggerPrinterEpsonComponent.builder().printerEpsonModule(PrinterEpsonModule(printerData, this, context)).build()
+                DaggerPrinterEpsonComponent.builder().printerEpsonModule(
+                    PrinterEpsonModule(
+                        printerData = this.printerData,
+                        printerWriterListener = this,
+                        context = context
+                    )
+                ).build()
                     .inject(this)
             } catch (epos2Exception: Epos2Exception) {
                 val printerError = PrinterError.getPrinterException(epos2Exception.errorStatus)
@@ -158,16 +163,18 @@ class PrinterEpson constructor(override var printerData: PrinterData, override v
     }
 
     override fun connectPrinter() {
-        CoroutineScope(dispatcher).launch {
+        getCurrentCoroutineScope().launch {
             try {
                 logger.i(" just before connectPrinter ")
                 printer.connect(printerData.printerAddress, EposPrinter.PARAM_DEFAULT)
+                ensureActive()
                 logger.i(" just after connectPrinter ")
                 printer.setReceiveEventListener(this@PrinterEpson)
                 printer.setStatusChangeEventListener(this@PrinterEpson)
                 printer.startMonitor()
                 printerConnectListener?.onConnectSuccess(printerData)
             } catch (epos2Exception: Epos2Exception) {
+                ensureActive()
                 val printerError: PrinterError = if (epos2Exception.errorStatus == EposException.EPOS_EXCEPTION_ERR_ILLEGAL.codeInt) {
                     PrinterError.getPrinterException(epos2Exception.errorStatus, ScopeTag.CONNECT)
                 } else {
@@ -179,12 +186,14 @@ class PrinterEpson constructor(override var printerData: PrinterData, override v
                 logger.e(printerLogInfo)
                 printerConnectListener?.onConnectFailure(printerData, printerException)
             } catch (exception: Exception) {
+                ensureActive()
                 val printerExceptionBuilder = PrinterExceptionBuilder()
                 val printerException = printerExceptionBuilder.withPrinterError(errorMessage = exception.message).build()
                 val printerLogInfo = PrinterLogInfo(printerData = printerData, printerException = printerException)
                 logger.e(printerLogInfo)
                 printerConnectListener?.onConnectFailure(printerData, printerException)
             }
+
         }
     }
 
@@ -213,14 +222,16 @@ class PrinterEpson constructor(override var printerData: PrinterData, override v
     }
 
     override fun disconnectPrinter() {
-        CoroutineScope(dispatcher).launch(coroutineExceptionHandler) {
+        getCurrentCoroutineScope().launch(coroutineExceptionHandler) {
             try {
                 printer.setReceiveEventListener(null)
                 printer.setStatusChangeEventListener(null)
                 printer.stopMonitor()
                 printer.disconnect()
+                ensureActive()
                 printerConnectListener?.onDisconnectSuccess(printerData)
             } catch (epos2Exception: Epos2Exception) {
+                ensureActive()
                 val printerError: PrinterError = if (epos2Exception.errorStatus == EposException.EPOS_EXCEPTION_ERR_ILLEGAL.codeInt) {
                     PrinterError.getPrinterException(epos2Exception.errorStatus, ScopeTag.DISCONNECT)
                 } else {
@@ -232,6 +243,7 @@ class PrinterEpson constructor(override var printerData: PrinterData, override v
                 logger.e(printerLogInfo)
                 printerConnectListener?.onDisconnectFailure(printerData, printerException)
             } catch (exception: Exception) {
+                ensureActive()
                 val printerExceptionBuilder = PrinterExceptionBuilder()
                 val printerException = printerExceptionBuilder.withPrinterError(errorMessage = exception.message).build()
                 val printerLogInfo = PrinterLogInfo(printerData = printerData, printerException = printerException)
@@ -277,14 +289,30 @@ class PrinterEpson constructor(override var printerData: PrinterData, override v
     }
 
     override fun getStatus() {
-        CoroutineScope(dispatcher).launch(coroutineExceptionHandler) {
+        getCurrentCoroutineScope().launch(coroutineExceptionHandler) {
             val statusInfo = printer.status
+            ensureActive()
             printerStatusListener?.onStatusReceived(printerData, PrinterStatus(statusInfo))
         }
     }
 
     override fun cancelAllJob() {
-        CoroutineScope(dispatcher).cancel()
+        getCurrentCoroutineScope().cancel()
+    }
+
+    private fun getCurrentCoroutineScope(): CoroutineScope {
+        if (!coroutineScope.isActive) {
+            DaggerPrinterEpsonComponent.builder().printerEpsonModule(
+                PrinterEpsonModule(
+                    eposPrinter = printer,
+                    printerData = this.printerData,
+                    printerWriterListener = this,
+                    context = context
+                )
+            ).build()
+                .inject(this)
+        }
+        return coroutineScope
     }
 
     /**
