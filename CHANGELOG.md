@@ -2,6 +2,15 @@
 
 
 
+
+## [1.0.0] - 2021-05-03
+
+### Fixed
+
+- Ensure canceling remaining jobs and unlock main job correctly
+
+
+
 ## [1.0.0.beta3] - 2021-04-29
 
 ### Added
