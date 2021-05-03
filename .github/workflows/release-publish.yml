@@ -32,7 +32,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build AAR ⚙️🛠
-        run: bash ./gradlew :printer:assemble
+        run: bash ./gradlew :printer:assembleRelease
 
       - name: Publish to GitHub Package Registry 🚀
         run: bash ./gradlew :printer:publish
@@ -48,26 +48,13 @@ jobs:
           REPO: ${{ github.repository }}
 
       - name: Create Release ✅
-        id: create_release
-        uses: actions/create-release@latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: ${{ github.ref }}
-          body: ${{ steps.changelog.outputs.changelog }}
-          draft: true
-          prerelease: false
-
-      - name: Upload Simple Library AAR 🗳
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: printer/build/outputs/aar/printer-release.aar
-          asset_name: printer.aar
-          asset_content_type: application/aar
+          uses: docker://antonyurchenko/git-release:latest
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            ALLOW_TAG_PREFIX: "true"
+          with:
+            args: |
+              printer/build/outputs/aar/printer*release.aar
 
       - name: Notify Slack 📣
         uses: 8398a7/action-slack@v3

@@ -19,6 +19,7 @@ android {
         versionName appVersionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
+        setProperty("archivesBaseName", "${archivesBaseName}-$appVersionName")
     }
     sourceSets {
         main {
