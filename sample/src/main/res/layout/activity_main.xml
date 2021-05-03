@@ -21,7 +21,7 @@
             android:drawablePadding="12dp"
             android:hint="@string/main_bluetooth_address_default_second"
             android:inputType="text"
-            android:text="@string/main_tcp_address_first"
+            android:text="@string/main_bluetooth_address_default_second"
             app:layout_constraintBottom_toTopOf="@+id/buttonConnectPrintManual"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
