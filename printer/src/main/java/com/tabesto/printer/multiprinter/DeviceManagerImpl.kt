@@ -19,6 +19,7 @@ import com.tabesto.printer.model.ScopeTag.BLUETOOTH
 import com.tabesto.printer.model.ScopeTag.CONNECT
 import com.tabesto.printer.model.ScopeTag.DISCONNECT
 import com.tabesto.printer.model.ScopeTag.DISCOVERY
+import com.tabesto.printer.model.ScopeTag.GET_STATUS
 import com.tabesto.printer.model.ScopeTag.INITIALIZE
 import com.tabesto.printer.model.ScopeTag.PRINT_DATA
 import com.tabesto.printer.model.devicemanager.DeviceManagerJobResult
@@ -30,8 +31,10 @@ import com.tabesto.printer.utils.Constants.MAIN_JOB_IS_RUNNING
 import com.tabesto.printer.utils.Constants.PRINTER_DATA_NOT_MANAGED
 import com.tabesto.printer.utils.SingletonHolder
 import com.tabesto.printer.utils.log.Logger
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -60,7 +63,7 @@ class DeviceManagerImpl internal constructor() : DeviceManager, PrinterInitListe
     lateinit var listOfPrinters: HashMap<PrinterData, Printer>
 
     @Inject
-    lateinit var dispatcher: CoroutineDispatcher
+    lateinit var coroutineScope: CoroutineScope
 
     /**
      * mainJobIsRunning variable will allow us to lock some public instruction when other job are running
@@ -312,7 +315,8 @@ class DeviceManagerImpl internal constructor() : DeviceManager, PrinterInitListe
     }
 
     override fun getStatus(printerData: PrinterData) {
-        listOfPrinters[printerData]?.getStatus()
+        val listOfPrinterDataManaged = initializeJobList(printerData, GET_STATUS)
+        listOfPrinterDataManaged.forEach { listOfPrinters[it]?.getStatus() }
     }
 
     private fun returnDeviceManagerExceptionForAJob(
@@ -489,13 +493,25 @@ class DeviceManagerImpl internal constructor() : DeviceManager, PrinterInitListe
     override fun getManagedPrinterDataList() = listOfPrinters.keys.toList()
 
     override fun getManagedPrinterDataAndStatusList() {
-        CoroutineScope(dispatcher).launch {
+        getCurrentCoroutineScope().launch {
             val listOfPrinterDataAndPrinterStatus: List<PrinterManaged> = listOfPrinters.map { (printerData, printer) ->
+                initializeJobList(printerData, GET_STATUS)
                 val currentPrinterStatus = printer.getStatusRaw()
+                removeJobAndAddJobResultInList(printerData, GET_STATUS, true)
+                addResultsToHistoryAndUnlockMainJobAndResetCounters()
                 PrinterManaged(printerData, currentPrinterStatus)
             }
+            ensureActive()
             deviceManagerListener?.onListOfPrinterManagedReceived(listOfPrinterDataAndPrinterStatus)
         }
+    }
+
+    private fun getCurrentCoroutineScope(): CoroutineScope {
+        if (!coroutineScope.isActive) {
+            DaggerDeviceManagerComponent.builder().deviceManagerModule(DeviceManagerModule(listOfPrinters = listOfPrinters)).build()
+                .inject(this)
+        }
+        return coroutineScope
     }
 
     override fun getJobsResultHistoryList() = listOfHistoryJobsResult
@@ -522,9 +538,10 @@ class DeviceManagerImpl internal constructor() : DeviceManager, PrinterInitListe
     }
 
     override fun cancelAllJobsAndUnlock() {
+        getCurrentCoroutineScope().cancel()
         listOfPrinters.forEach { (_, printer) -> printer.cancelAllJob() }
         listOfJobs.clear()
-        mainJobIsRunning = false
+        addResultsToHistoryAndUnlockMainJobAndResetCounters()
     }
 
     override fun getListOfRemainingJobs(): List<PrinterRemainingJob> =
@@ -546,6 +563,8 @@ class DeviceManagerImpl internal constructor() : DeviceManager, PrinterInitListe
     }
 
     override fun onStatusReceived(printerData: PrinterData, printerStatus: PrinterStatus) {
+        removeJobAndAddJobResultInList(printerData, GET_STATUS, true)
+        addResultsToHistoryAndUnlockMainJobAndResetCounters()
         deviceManagerStatusListener?.onStatusReceived(printerData, printerStatus)
     }
 }

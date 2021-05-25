@@ -7,5 +7,5 @@ package com.tabesto.printer.model
  */
 @Suppress("unused")
 enum class ScopeTag {
-    PRINT_DATA, CONNECT, DISCONNECT, ANY, BLUETOOTH, DISCOVERY, INITIALIZE
+    PRINT_DATA, CONNECT, DISCONNECT, ANY, BLUETOOTH, DISCOVERY, INITIALIZE, GET_STATUS
 }

@@ -4,15 +4,18 @@ import com.tabesto.printer.Printer
 import com.tabesto.printer.model.PrinterData
 import dagger.Module
 import dagger.Provides
-import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import javax.inject.Singleton
 
 @Module
-class DeviceManagerModule {
+class DeviceManagerModule(private val listOfPrinters: HashMap<PrinterData, Printer>? = null) {
 
     @Provides
-    fun providesListOfPrinterData(): HashMap<PrinterData, Printer> = HashMap()
+    @Singleton
+    fun providesListOfPrinterData(): HashMap<PrinterData, Printer> = listOfPrinters ?: HashMap()
 
     @Provides
-    fun providesDispatcher(): CoroutineDispatcher = Dispatchers.IO
+    @Singleton
+    fun providesCoroutineScope(): CoroutineScope = CoroutineScope(Dispatchers.IO)
 }
