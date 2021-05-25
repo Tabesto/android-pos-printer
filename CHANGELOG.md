@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.0] - 2021-05-25
+
+### Changed
+
+- Allow cancel background job for get managed printer list 
+
 
 
 
