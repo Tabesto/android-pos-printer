@@ -11,7 +11,7 @@ package com.tabesto.printer.model.ticket
  */
 data class StyleLine(
     var alignStyle: AlignStyle = AlignStyle.CENTER,
-    var fontStyle: FontStyle = FontStyle.DEFAULT,
+    var fontStyle: FontStyle? = null,
     var textWidth: Int = 1,
     var textHeight: Int = 1,
     var textStyle: TextStyle = TextStyle()

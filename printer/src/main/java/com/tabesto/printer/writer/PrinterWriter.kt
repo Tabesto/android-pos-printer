@@ -89,7 +89,9 @@ open class PrinterWriter(val printer: Printer?, private val listener: PrinterWri
     private fun writeStringLine(stringLine: StringLine) {
         val styleLine: StyleLine = stringLine.styleLine
         printer?.addTextAlign(styleLine.alignStyle.epsonAlign)
-        printer?.addTextFont(styleLine.fontStyle.fontStyle)
+        styleLine.fontStyle?.let {
+            printer?.addTextFont(it.fontStyle)
+        }
         printer?.addTextSize(styleLine.textWidth, styleLine.textHeight)
         printer?.addTextStyle(
             checkTextStyle(styleLine.textStyle.reverse),
