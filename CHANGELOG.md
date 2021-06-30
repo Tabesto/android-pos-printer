@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.1] - 2021-06-30
+
+### Fixed
+
+- Do not force default ticket font style 
+
+
+
 ## [1.1.0] - 2021-05-25
 
 ### Changed
