@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.0] - 2021-10-08
+
+### Added
+
+- Printing with on demand connection
+
+
+
 ## [1.1.1] - 2021-06-30
 
 ### Fixed
