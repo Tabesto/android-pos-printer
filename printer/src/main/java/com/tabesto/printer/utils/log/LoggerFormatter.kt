@@ -4,12 +4,12 @@ import com.tabesto.printer.model.PrinterData
 import com.tabesto.printer.model.PrinterLogInfo
 import com.tabesto.printer.model.error.PrinterException
 import com.tabesto.printer.model.status.PrinterStatus
+import timber.log.Timber
 
 class LoggerFormatter(className: String) {
     var printerDataFullLogIsEnabled: Boolean = false
     var printerStatusFullLogIsEnabled: Boolean = false
-    var listLoggerBodyContent: MutableList<LoggerExtraArgument> = mutableListOf()
-    var printerException: PrinterException? = null
+    private var listLoggerBodyContent: MutableList<LoggerExtraArgument?> = mutableListOf()
     var loggerIsEnabled: Boolean = true
     private val loggerWriter = LoggerWriter(className)
 
@@ -20,18 +20,29 @@ class LoggerFormatter(className: String) {
     fun log(
         loggerLevel: LoggerLevel = LoggerLevel.DEBUG,
         printerLogInfo: PrinterLogInfo? = null,
-        vararg loggerExtraArg: LoggerExtraArgument,
+        vararg loggerExtraArg: LoggerExtraArgument?,
         message: String? = null
     ) {
-        addExtraArgListInBody(*loggerExtraArg)
+        try {
+            addExtraArgListInBody(*loggerExtraArg)
 
-        buildLoggerDefaultBodyContent(message, printerLogInfo?.printerData, printerLogInfo?.printerStatus, printerLogInfo?.printerException)
+            buildLoggerDefaultBodyContent(
+                message,
+                printerLogInfo?.printerData,
+                printerLogInfo?.printerStatus,
+                printerLogInfo?.printerException
+            )
 
-        if (loggerIsEnabled) {
-            loggerWriter.printLog(loggerLevel, listLoggerBodyContent)
+            if (loggerIsEnabled) {
+                loggerWriter.printLog(loggerLevel, listLoggerBodyContent)
+            }
+
+            clearListLoggerBodyContent()
+        } catch (exception: Exception) {
+            //FIXME crash sometimes when logs comes from Action queue (not thread-safe)
+            // this is not critical for now because these logs are not used in production in apps, only for debug
+            Timber.d(exception)
         }
-
-        clearListLoggerBodyContent()
     }
 
     private fun clearListLoggerBodyContent() {
@@ -100,8 +111,8 @@ class LoggerFormatter(className: String) {
         }
     }
 
-    private fun addExtraArgListInBody(vararg loggerExtraArg: LoggerExtraArgument) {
-        listLoggerBodyContent = loggerExtraArg.map { arg ->
+    private fun addExtraArgListInBody(vararg loggerExtraArg: LoggerExtraArgument?) {
+        listLoggerBodyContent = loggerExtraArg.filterNotNull().map { arg ->
             LoggerExtraArgument("${argPrefix}${replaceSpaceByMiddleDash(arg.name)}", arg.value)
         }.toMutableList()
     }
@@ -117,11 +128,8 @@ class LoggerFormatter(className: String) {
         printerException: PrinterException? = null
     ) {
         addSimpleMessageLogInBody(message)
-
         addPrinterDataLogInBody(printerData)
-
         addPrinterStatusLogInBody(printerStatus)
-
         addPrinterErrorLogInBody(printerException)
     }
 }

@@ -16,10 +16,10 @@ import kotlinx.android.parcel.Parcelize
  */
 @Parcelize
 data class PrinterData(
-    var printerModel: PrinterModel = PrinterModel.PRINTER_TM_M10,
-    var printerRegion: PrinterRegion = PrinterRegion.PRINTER_ANK,
-    var printerAddress: String? = null,
-    var connectionMode: ConnectionMode = ConnectionMode.MANUAL,
-    var printerType: PrinterType = PrinterType.PRINTER_EPSON,
-    var customBodyTextSize: Int = 1
+    val printerModel: PrinterModel = PrinterModel.PRINTER_TM_M10,
+    val printerRegion: PrinterRegion = PrinterRegion.PRINTER_ANK,
+    val printerAddress: String? = null,
+    val connectionMode: ConnectionMode = ConnectionMode.MANUAL,
+    val printerType: PrinterType = PrinterType.PRINTER_EPSON,
+    val customBodyTextSize: Int = 1
 ) : Parcelable

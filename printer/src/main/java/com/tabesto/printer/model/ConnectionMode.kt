@@ -1,5 +1,6 @@
 package com.tabesto.printer.model
 
 enum class ConnectionMode {
-    MANUAL, AUTO
+    MANUAL, //PERSISTENT
+    AUTO //ON_DEMAND
 }

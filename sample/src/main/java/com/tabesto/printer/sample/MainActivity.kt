@@ -1,15 +1,16 @@
 package com.tabesto.printer.sample
 
-import android.annotation.SuppressLint
 import android.content.Intent
-import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.view.View
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.mikepenz.fastadapter.FastAdapter
+import com.mikepenz.fastadapter.adapters.ItemAdapter
+import com.mikepenz.fastadapter.select.SelectExtension
+import com.mikepenz.fastadapter.select.getSelectExtension
 import com.tabesto.printer.model.ConnectionMode
 import com.tabesto.printer.model.PrinterData
 import com.tabesto.printer.model.PrinterManaged
@@ -20,21 +21,15 @@ import com.tabesto.printer.model.ScopeTag
 import com.tabesto.printer.model.devicemanager.DeviceManagerJobResult
 import com.tabesto.printer.model.error.PrinterException
 import com.tabesto.printer.model.status.PrinterStatus
-import com.tabesto.printer.model.ticket.FeedCutLine
-import com.tabesto.printer.model.ticket.FeedLine
-import com.tabesto.printer.model.ticket.ImageLine
-import com.tabesto.printer.model.ticket.StringLine
-import com.tabesto.printer.model.ticket.StyleLine
 import com.tabesto.printer.model.ticket.TicketData
-import com.tabesto.printer.model.ticket.TicketData.TicketDataBuilder
 import com.tabesto.printer.multiprinter.DeviceManager
 import com.tabesto.printer.multiprinter.DeviceManagerConnectListener
-import com.tabesto.printer.multiprinter.DeviceManagerDiscoveryListener
 import com.tabesto.printer.multiprinter.DeviceManagerImpl
 import com.tabesto.printer.multiprinter.DeviceManagerInitListener
 import com.tabesto.printer.multiprinter.DeviceManagerListener
 import com.tabesto.printer.multiprinter.DeviceManagerPrintListener
 import com.tabesto.printer.multiprinter.DeviceManagerStatusListener
+import com.tabesto.printer.sample.databinding.ActivityMainBinding
 import com.tabesto.printer.sample.dialog.DialogPrinterErrorDetails
 import com.tabesto.printer.sample.dialog.JobResultListDialog
 import com.tabesto.printer.sample.dialog.JobResultListDialogListener
@@ -42,84 +37,146 @@ import com.tabesto.printer.sample.dialog.PrinterManagedListDialog
 import com.tabesto.printer.sample.dialog.PrinterManagedListDialogListener
 import com.tabesto.printer.sample.dialog.RemainingJobListDialog
 import com.tabesto.printer.sample.dialog.RemainingJobListDialogListener
+import com.tabesto.printer.sample.util.TicketBuilder.buildSmallTicketData
+import com.tabesto.printer.sample.util.viewBinding
 import timber.log.Timber
 
-@SuppressLint("LogNotTimber")
-class MainActivity : AppCompatActivity(), DeviceManagerListener,
-    DeviceManagerConnectListener, DeviceManagerPrintListener,
-    DeviceManagerInitListener, DeviceManagerDiscoveryListener, JobResultListDialogListener, PrinterManagedListDialogListener,
-    DeviceManagerStatusListener, RemainingJobListDialogListener {
+class MainActivity : AppCompatActivity(), DeviceManagerListener, DeviceManagerConnectListener, DeviceManagerPrintListener,
+    DeviceManagerInitListener, JobResultListDialogListener, PrinterManagedListDialogListener, DeviceManagerStatusListener,
+    RemainingJobListDialogListener, PrinterItem.Listener {
+
+    private val binding by viewBinding(ActivityMainBinding::inflate)
+    private val printerAdapter = ItemAdapter<PrinterItem>()
+    private lateinit var printerFastAdapter: FastAdapter<PrinterItem>
     private lateinit var deviceManager: DeviceManager
-    private var printerData: PrinterData? = null
-    private var progressBar: ProgressBar? = null
-    private var addressEditText: EditText? = null
+    private var printerDataList: MutableList<PrinterData> = mutableListOf()
     private var ticketData: TicketData? = null
-    private var buttonShowRemainingJobList: Button? = null
-    private val listOfButtons = listOf(
-        R.id.buttonDisconnectManual,
-        R.id.buttonLaunchDiscovery,
-        R.id.buttonPrintManual,
-        R.id.buttonConnectPrintManual,
-        R.id.buttonStopDiscovery,
-        R.id.buttonGetStatus,
-        R.id.buttonShowJobResultArchive,
-        R.id.buttonPrintAll,
-        R.id.buttonDisconnectAll,
-        R.id.buttonShowManagedPrinterList,
-        R.id.buttonStartExampleActivity
-    )
+    private var connectionMode: ConnectionMode = ConnectionMode.MANUAL
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-
-        initializeWidget()
-
-        setupView()
-
-        buildTicketData()
-
-        initializeLog()
-
+        setContentView(binding.root)
+        setupViews()
+        setupLogs()
         deviceManager = DeviceManagerImpl.getInstance()
+        initData()
     }
 
-    private fun initializeLog() {
+    private fun setupViews() {
+        with(binding) {
+            printerFastAdapter = FastAdapter.with(printerAdapter).apply {
+                setHasStableIds(true)
+                addEventHooks(
+                    listOf(
+                        PrinterItem.CheckBoxClickEvent(),
+                        PrinterItem.StatusClickEvent(this@MainActivity),
+                    )
+                )
+                getSelectExtension().apply {
+                    isSelectable = true
+                    multiSelect = true
+                }
+            }
+
+            recyclerviewMainPrinterList.apply {
+                layoutManager = LinearLayoutManager(this@MainActivity, RecyclerView.VERTICAL, false)
+                setHasFixedSize(true)
+                adapter = printerFastAdapter
+                itemAnimator = null
+            }
+
+            radiogroupMainConnectionMode.setOnCheckedChangeListener { _, checkedId ->
+                when (checkedId) {
+                    R.id.radiobutton_main_persistent_connection_mode -> {
+                        connectionMode = ConnectionMode.MANUAL
+                        buttonMainInitPrinter.isEnabled = true
+                        buttonMainConnectPrinter.isEnabled = true
+                        buttonMainDisconnectPrinter.isEnabled = true
+                    }
+                    R.id.radiobutton_main_on_demand_connection_mode -> {
+                        connectionMode = ConnectionMode.AUTO
+                        buttonMainInitPrinter.isEnabled = false
+                        buttonMainConnectPrinter.isEnabled = false
+                        buttonMainDisconnectPrinter.isEnabled = false
+                        showToast("Managed printer list cleared ! \nInitialization will be done on printing on demand", Toast.LENGTH_LONG)
+                    }
+                }
+
+                refreshPrinterListOnConnectionModeChanged(connectionMode)
+            }
+
+            buttonMainInitPrinter.setOnClickListener { initPrinters() }
+            buttonMainConnectPrinter.setOnClickListener { connectPrinter() }
+            buttonMainPrint.setOnClickListener { printTicket() }
+            buttonMainDisconnectPrinter.setOnClickListener { disconnectPrinter() }
+            buttonMainJobHistory.setOnClickListener { showJobResultHistoryList() }
+            buttonMainPrinterList.setOnClickListener { showManagedPrinterList() }
+            buttonMainRemainingJobs.setOnClickListener { showRemainingJobListDialog() }
+            buttonMainExampleActivity.setOnClickListener { startExampleActivity() }
+        }
+    }
+
+    private fun refreshPrinterListOnConnectionModeChanged(connectionMode: ConnectionMode) {
+        // 1. clear printer list
+        printerAdapter.adapterItems.forEach {
+            onPrinterUnselected(it)
+        }
+
+        // 2. replace connection mode on each selected printer on connection mode change
+        val newPrinterList = printerAdapter.adapterItems.map { printerItem ->
+            val newPrinterData = printerItem.printerData?.copy(connectionMode = connectionMode)
+            printerItem.printerData = newPrinterData
+            printerItem
+        }
+        printerAdapter.setNewList(newPrinterList)
+
+        // 3. re set printer list with new connection mode for selected printers
+        val selectExtension: SelectExtension<PrinterItem> = printerFastAdapter.requireExtension()
+        printerDataList = selectExtension.selectedItems.mapNotNull { it.printerData }.toMutableList()
+    }
+
+    private fun setupLogs() {
         if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())
         }
     }
 
-    private fun initializeWidget() {
-        progressBar = findViewById(R.id.progressBar)
-        addressEditText = findViewById(R.id.editTextAddress)
-
-        buttonShowRemainingJobList = findViewById(R.id.buttonShowRemainingJobList)
-    }
-
-    private fun setupView() {
-        buttonShowRemainingJobList?.setOnClickListener { showRemainingJobListDialog() }
+    private fun initData() {
+        // ticketData = buildSampleTicketData(this)
+        ticketData = buildSmallTicketData(this)
+        val printerData1 = PrinterData(
+            PrinterModel.PRINTER_TM_M10,
+            PrinterRegion.PRINTER_ANK,
+            getString(R.string.main_bluetooth_address_2),
+            connectionMode,
+            PrinterType.PRINTER_EPSON
+        )
+        val printerData2 = PrinterData(
+            PrinterModel.PRINTER_TM_M10,
+            PrinterRegion.PRINTER_ANK,
+            getString(R.string.main_tcp_address_1),
+            connectionMode,
+            PrinterType.PRINTER_EPSON
+        )
+        val printerData3 = PrinterData(
+            PrinterModel.PRINTER_TM_M10,
+            PrinterRegion.PRINTER_ANK,
+            getString(R.string.main_bluetooth_address_1),
+            connectionMode,
+            PrinterType.PRINTER_EPSON
+        )
+        val printerItemList =
+            listOf(
+                PrinterItem(printerData1, this@MainActivity),
+                PrinterItem(printerData2, this@MainActivity),
+                PrinterItem(printerData3, this@MainActivity),
+            )
+        printerAdapter.setNewList(printerItemList)
     }
 
     override fun onResume() {
         super.onResume()
         setDeviceManagerListeners()
-
-        addressEditText?.text?.toString()?.let { address ->
-            printerData =
-                PrinterData(
-                    PrinterModel.PRINTER_TM_M10,
-                    PrinterRegion.PRINTER_ANK,
-                    address,
-                    ConnectionMode.MANUAL,
-                    PrinterType.PRINTER_EPSON
-                )
-
-            printerData?.let { data ->
-                Timber.d(TAG, " just before initialize object ")
-                deviceManager.initializePrinter(data, this)
-            }
-        }
     }
 
     private fun setDeviceManagerListeners() {
@@ -127,181 +184,78 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
             deviceManagerInitListener = this,
             deviceManagerConnectListener = this,
             deviceManagerPrintListener = this,
-            deviceManagerDiscoveryListener = this,
             deviceManagerStatusListener = this,
             deviceManagerListener = this
         )
     }
 
-    /**
-     * Build ticket data with TicketBuilder in order to pass data to printer to print data
-     *
-     */
-    private fun buildTicketData() {
-        val logoData = BitmapFactory.decodeResource(this.resources, R.drawable.tabestologoresized)
-        val ticketDataBuilder = TicketDataBuilder()
-        val imageLineBuilder = ImageLine.ImageLineBuilder()
-        imageLineBuilder.withBitmap(logoData)
-        ticketData = ticketDataBuilder
-            .withImageLine(imageLineBuilder.build())
-            .withFeedLine(FeedLine())
-            .withLine(StringLine("THE STORE 123 (555) 555 – 5555", StyleLine()))
-            .withFeedLine(FeedLine())
-            .withLine(StringLine("------------------------------", StyleLine()))
-            .withLine(StringLine("400 OHEIDA 3PK SPRINGF  9.99 R", StyleLine()))
-            .withLine(StringLine("410 3 CUP BLK TEAPOT    9.99 R", StyleLine()))
-            .withLine(StringLine("------------------------------", StyleLine()))
-            .withFeedLine(FeedLine())
-            .withLine(StringLine("TOTAL    174.81", StyleLine(textHeight = 2, textWidth = 2)))
-            .withFeedLine(FeedLine())
-            .withLine(StringLine(this.resources.getString(R.string.powered_tabesto), StyleLine()))
-            .withFeedCutLine(FeedCutLine())
-            .build()
-    }
-
-    @Suppress("UNUSED_PARAMETER")
-    fun connectInManualMode(view: View) {
-        addressEditText?.text?.toString()?.let { address ->
-            Timber.d(TAG, " onClick print printReceiptInManualMode ")
-            showProgressBar()
-            enableButtons(false)
-            printerData =
-                PrinterData(
-                    PrinterModel.PRINTER_TM_M10,
-                    PrinterRegion.PRINTER_ANK,
-                    address,
-                    ConnectionMode.MANUAL,
-                    PrinterType.PRINTER_EPSON
-                )
-
-            printerData?.let { data ->
-                Timber.d(TAG, " just before initialize object ")
-                deviceManager.initializePrinter(data, this)
-                deviceManager.connectPrinter(data)
+    private fun initPrinters() {
+        Timber.d(TAG, "Init printer in persistent mode for \n${getPrinterListString()}")
+        val message: String = if (printerDataList.isEmpty()) {
+            "Printer addresses are empty or not selected"
+        } else {
+            printerDataList.forEach {
+                Timber.d(TAG, "Just before initialize printer object for ${it.printerAddress}")
+                deviceManager.initializePrinter(it, applicationContext)
             }
+            "Printer list initialized : \n${getPrinterListString()}"
         }
+        showToast(message)
     }
 
-    @Suppress("UNUSED_PARAMETER")
-    fun launchPrintManual(view: View) {
-        Timber.d(TAG, " onClick print printReceiptInManualMode ")
-
-        addressEditText?.text?.toString()?.let { address ->
-            showProgressBar()
-            enableButtons(false)
-
-            val printerData =
-                PrinterData(
-                    PrinterModel.PRINTER_TM_M10,
-                    PrinterRegion.PRINTER_ANK,
-                    address,
-                    ConnectionMode.MANUAL,
-                    PrinterType.PRINTER_EPSON
-                )
-
-            ticketData?.let { ticketData ->
-                Timber.d(TAG, " onClick print launchPrintManual")
-                deviceManager.printData(printerData, ticketData)
-            }
-
-        } ?: showToast(" no address given in input")
-    }
-
-    @Suppress("UNUSED_PARAMETER")
-    fun launchPrintOnAllPrinter(view: View) {
+    private fun connectPrinter() {
         showProgressBar()
         enableButtons(false)
-        Timber.d(TAG, " onClick print launchPrintOnAllPrinter")
-        ticketData?.let { ticketData ->
-            deviceManager.printData(ticketData = ticketData)
+        when (connectionMode) {
+            ConnectionMode.MANUAL -> {
+                Timber.d(TAG, "Connect printer in persistent mode for \n${getPrinterListString()}")
+                deviceManager.connectPrinter()
+            }
+            ConnectionMode.AUTO -> {
+                Timber.d(TAG, "Connect printer on demand mode is not possible")
+            }
         }
     }
 
-    @Suppress("UNUSED_PARAMETER")
-    fun disconnectPrinterInManualMode(view: View) {
-        Timber.d(TAG, " onClick print disconnectPrinterInManualMode ")
-        addressEditText?.text?.toString()?.let { address ->
-            showProgressBar()
-            enableButtons(false)
-
-            val printerData =
-                PrinterData(
-                    PrinterModel.PRINTER_TM_M10,
-                    PrinterRegion.PRINTER_ANK,
-                    address,
-                    ConnectionMode.MANUAL,
-                    PrinterType.PRINTER_EPSON
-                )
-            deviceManager.disconnectPrinter(printerData)
-
-        }
-    }
-
-    @Suppress("UNUSED_PARAMETER")
-    fun disconnectAllPrinter(view: View) {
+    private fun printTicket() {
         showProgressBar()
         enableButtons(false)
-        Timber.d(TAG, " onClick  disconnectAllPrinter")
-        deviceManager.disconnectPrinter()
+        when (connectionMode) {
+            ConnectionMode.MANUAL -> {
+                Timber.d(TAG, "Print ticket in persistent mode for \n${getPrinterListString()}")
+                ticketData?.let { ticketData ->
+                    deviceManager.printData(ticketData)
+                }
+            }
+            ConnectionMode.AUTO -> {
+                Timber.d(TAG, "Print ticket on demand mode for \n${getPrinterListString()}")
+                initPrinters()
+                ticketData?.let { ticketData ->
+                    deviceManager.printDataOnDemand(ticketData, getConnectTimeout(), getPrintTimeout())
+                }
+            }
+        }
     }
 
-    @Suppress("UNUSED_PARAMETER")
-    fun launchDiscovery(view: View) {
-        Timber.d(TAG, " onClick launchDiscovery ")
+    private fun disconnectPrinter() {
         showProgressBar()
         enableButtons(false)
-        try {
-            printerData?.let { printerData ->
-                deviceManager.restartBluetoothAndLaunchDiscovery(printerData)
+        when (connectionMode) {
+            ConnectionMode.MANUAL -> {
+                Timber.d(TAG, "Disconnect printer in persistent mode for \n${getPrinterListString()}")
+                deviceManager.disconnectPrinter()
             }
-        } catch (exception: Exception) {
-            Timber.e(TAG, "an error happened while trying to discover printer in activity ${exception.message}")
-            hideProgressBar()
-            showToast("an error happened while trying to discover printer in main activity ")
-        }
-    }
-
-    @Suppress("UNUSED_PARAMETER")
-    fun stopDiscovery(view: View) {
-        Timber.d(TAG, " onClick stopDiscovery ")
-        try {
-            showProgressBar()
-            printerData?.let { printerData ->
-                deviceManager.stopDiscovery(printerData)
+            ConnectionMode.AUTO -> {
+                Timber.d(TAG, "Disconnect printer on demand mode is not possible")
             }
-        } catch (e: Exception) {
-            Timber.e(TAG, "an error happened while trying to stop discovering  printer in main activity " + e.message)
-            hideProgressBar()
-            enableButtons(true)
-            showToast("an error happened while trying to stop discovering printer in main activity ")
         }
     }
 
-    @Suppress("UNUSED_PARAMETER")
-    fun getStatus(view: View) {
-        addressEditText?.text?.toString()?.let { address ->
-            showProgressBar()
-
-            val printerData =
-                PrinterData(
-                    PrinterModel.PRINTER_TM_M10,
-                    PrinterRegion.PRINTER_ANK,
-                    address,
-                    ConnectionMode.MANUAL,
-                    PrinterType.PRINTER_EPSON
-                )
-
-            deviceManager.getStatus(printerData)
-        }
-    }
-
-    @Suppress("UNUSED_PARAMETER")
-    fun showJobResultHistoryList(view: View) {
+    private fun showJobResultHistoryList() {
         openDialogWithJobResultList(canEnableClearListButton = true)
     }
 
-    @Suppress("UNUSED_PARAMETER")
-    fun showManagedPrinterList(view: View) {
+    private fun showManagedPrinterList() {
         showProgressBar()
         enableButtons(false)
         deviceManager.getManagedPrinterDataAndStatusList()
@@ -316,15 +270,13 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
                 val dialogPrinterDataAndStatusList = PrinterManagedListDialog().newInstance(listOfPrinterDataAndPrinterStatus)
                 dialogPrinterDataAndStatusList.show(supportFragmentManager, "PrinterManagedListDialog")
             } else {
-                showToast(" The list of printer is empty ")
+                showToast("List of printer is empty ")
             }
         }
     }
 
-    @Suppress("UNUSED_PARAMETER")
-    fun startExampleActivity(view: View) {
-        val intent = Intent(this, ExampleActivity::class.java)
-        startActivity(intent)
+    private fun startExampleActivity() {
+        startActivity(Intent(this, ExampleActivity::class.java))
     }
 
     private fun openDialogWithJobResultList(
@@ -337,24 +289,26 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
             val dialogJobsResultList = JobResultListDialog().newInstance(list, canEnableClearListButton)
             dialogJobsResultList.show(supportFragmentManager, "JobResultListDialog")
         } else {
-            showToast(" The list of history job is empty ")
+            showToast("List of history job is empty ")
         }
     }
 
     private fun showProgressBar() {
         Timber.d(TAG, " show progress bar")
-        progressBar?.visibility = View.VISIBLE
+        binding.progressbarMainProgress.visibility = View.VISIBLE
     }
 
     private fun hideProgressBar() {
         Timber.d(TAG, " hide progress bar")
-        progressBar?.visibility = View.INVISIBLE
+        binding.progressbarMainProgress.visibility = View.INVISIBLE
     }
 
     private fun enableButtons(enable: Boolean) {
-        listOfButtons.map { buttonId ->
-            val button: Button = findViewById(buttonId)
-            button.isEnabled = enable
+        with(binding) {
+            buttonMainInitPrinter.isEnabled = enable && !radiobuttonMainOnDemandConnectionMode.isChecked
+            buttonMainConnectPrinter.isEnabled = enable && !radiobuttonMainOnDemandConnectionMode.isChecked
+            buttonMainDisconnectPrinter.isEnabled = enable && !radiobuttonMainOnDemandConnectionMode.isChecked
+            buttonMainPrint.isEnabled = enable || radiobuttonMainOnDemandConnectionMode.isChecked
         }
     }
 
@@ -368,7 +322,7 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
         if (isLastReturnOfJob) {
             runOnUiThread {
                 hideProgressBar()
-                showToast("all jobs ended with an error ")
+                showToast("All jobs ended with an error")
                 enableButtons(true)
             }
             openDialogWithJobResultList()
@@ -379,7 +333,7 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
         Timber.d(TAG, " in onListOfPrintersEmpty in ${scope.name}")
         runOnUiThread {
             hideProgressBar()
-            showToast(" there is no printer managed ")
+            showToast("There is no printer managed")
             enableButtons(true)
         }
     }
@@ -389,7 +343,7 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
             if (jobResult.isSuccessful) {
                 Timber.d(TAG, "successfully connected ${jobResult.printerData.printerAddress}")
                 runOnUiThread {
-                    showToast("successfully connected")
+                    showToast("Successfully connected")
                 }
             } else {
                 Timber.e(
@@ -397,7 +351,7 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
                     "onConnectFailure error message ${jobResult.printerData.printerAddress} : ${jobResult.printerException?.message}"
                 )
                 runOnUiThread {
-                    showToast("an error happened while trying to connect printer")
+                    showToast("An error happened while trying to connect printer")
                 }
             }
         }
@@ -413,7 +367,7 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
             if (jobResult.isSuccessful) {
                 Timber.d(TAG, "successfully disconnected ${jobResult.printerData.printerAddress}")
                 runOnUiThread {
-                    showToast("successfully disconnected")
+                    showToast("Successfully disconnected")
                 }
             } else {
                 Timber.e(
@@ -421,7 +375,7 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
                     "onFailureDisconnectPrinter error message ${jobResult.printerData.printerAddress} : ${jobResult.printerException?.message}"
                 )
                 runOnUiThread {
-                    showToast("An error happen while trying to disconnect from the printer(s) ")
+                    showToast("An error happened while trying to disconnect the printer")
                 }
             }
         }
@@ -438,7 +392,7 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
             if (jobResult.isSuccessful) {
                 Timber.d(TAG, "successfully print  ${jobResult.printerData.printerAddress}")
                 runOnUiThread {
-                    showToast("jobs printed successfully")
+                    showToast("Jobs printed successfully")
                 }
             } else {
                 Timber.e(
@@ -446,7 +400,7 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
                     "onPrintFailure error message ${jobResult.printerData.printerAddress} : ${jobResult.printerException?.message}"
                 )
                 runOnUiThread {
-                    showToast("An error happen while trying to print ticket ")
+                    showToast("An error happened while trying to print ticket ")
                 }
             }
         }
@@ -463,45 +417,9 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
 
         runOnUiThread {
             hideProgressBar()
-            showToast("an error happened while trying to init print")
+            showToast("An error happened while trying to init print")
             enableButtons(true)
         }
-    }
-
-    override fun onDiscoveryFinish(printerData: PrinterData, isAvailable: Boolean) {
-        Timber.d(TAG, "onFinishDiscovery")
-        runOnUiThread {
-            Timber.d(TAG, " onFinishDiscovery ")
-            hideProgressBar()
-            if (isAvailable) {
-                Timber.d(TAG, " true ")
-                showToast(" Yeah printer is available ! ${printerData.printerAddress}")
-            } else {
-                Timber.d(TAG, " false ")
-                showToast(" Oh No printer is not available ! ${printerData.printerAddress}")
-            }
-            enableButtons(true)
-        }
-    }
-
-    override fun onDiscoveryFailure(printerData: PrinterData, printerException: PrinterException) {
-        Timber.d(TAG, "onFailureDiscovery" + printerException.message)
-        runOnUiThread {
-            hideProgressBar()
-            showToast(" an error occurred while discovering printer  ${printerData.printerAddress}")
-            enableButtons(true)
-        }
-    }
-
-    override fun onDiscoveryStopSuccess(printerData: PrinterData) {
-        Timber.d(TAG, "onDiscoveryStoppedSuccessfully  ${printerData.printerAddress}")
-        hideProgressBar()
-    }
-
-    override fun onBluetoothRestartSuccess(printerData: PrinterData) {
-        Timber.d(TAG, "onBluetoothRestartedSuccessfully")
-        showToast(" Bluetooth is restarted successfully ${printerData.printerAddress}")
-        enableButtons(true)
     }
 
     private fun showToast(message: String, length: Int = Toast.LENGTH_SHORT) {
@@ -510,7 +428,7 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
 
     override fun clearListOfJobsResult() {
         deviceManager.clearJobsResultHistoryList()
-        showToast(" list cleared !")
+        showToast("Job list cleared !")
     }
 
     override fun onJobResultErrorSelected(jobResult: DeviceManagerJobResult) {
@@ -519,17 +437,16 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
     }
 
     override fun onPrinterSelected(printerData: PrinterData) {
-        addressEditText?.setText(printerData.printerAddress)
-        showToast("printer address is selected")
+        // Do nothing
     }
 
     override fun onRemovePrinter(printerData: PrinterData) {
         val result = deviceManager.removePrinter(printerData)
 
         if (result) {
-            showToast("printer is removed successfully !")
+            showToast("Printer is removed successfully !")
         } else {
-            showToast("printer can't be removed please check its address or if it stills connected")
+            showToast("Printer can't be removed please check its address or if it still connected")
         }
     }
 
@@ -538,12 +455,12 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
     }
 
     override fun onStatusReceived(printerData: PrinterData, printerStatus: PrinterStatus) {
-
         runOnUiThread {
             hideProgressBar()
             enableButtons(true)
             showToast(
-                "Connection Status: ${printerStatus.connectionStatus} \n" +
+                "${printerData.printerAddress} \n" +
+                    "Connection Status: ${printerStatus.connectionStatus} \n" +
                     "Online Status: ${printerStatus.onlineStatus} \n" +
                     "Cover Open Status: ${printerStatus.coverOpenStatus} \n" +
                     "Paper Status: ${printerStatus.paperStatus} \n" +
@@ -572,6 +489,52 @@ class MainActivity : AppCompatActivity(), DeviceManagerListener,
         enableButtons(true)
         hideProgressBar()
     }
+
+    private fun getConnectTimeout(): Int? =
+        binding.edittextMainConnectionTimeout.text?.toString()?.let { timeout ->
+            if (timeout.isNotBlank()) {
+                timeout.toInt()
+            } else {
+                null
+            }
+        }
+
+    private fun getPrintTimeout(): Int? =
+        binding.edittextMainPrintTimeout.text?.toString()?.let { timeout ->
+            if (timeout.isNotBlank()) {
+                timeout.toInt()
+            } else {
+                null
+            }
+        }
+
+    override fun onPrinterStatusButtonClick(position: Int, item: PrinterItem) {
+        item.printerData?.let { printerData ->
+            if (printerData.printerAddress?.isNotBlank() == true) {
+                showProgressBar()
+                deviceManager.getStatus(printerData)
+            } else {
+                showToast("This printer address is empty")
+            }
+        }
+    }
+
+    override fun onPrinterSelected(item: PrinterItem) {
+        item.printerData?.let { selectedPrinterData ->
+            printerDataList.add(selectedPrinterData)
+            Timber.d(TAG, "Printer list: \n${getPrinterListString()}")
+        }
+    }
+
+    override fun onPrinterUnselected(item: PrinterItem) {
+        item.printerData?.let { unselectedPrinterData ->
+            deviceManager.removePrinter(unselectedPrinterData)
+            printerDataList.remove(unselectedPrinterData)
+            Timber.d(TAG, "Printer list: \n${getPrinterListString()}")
+        }
+    }
+
+    private fun getPrinterListString() = printerDataList.joinToString(separator = "\n") { it.printerAddress.toString() }
 
     companion object {
         private val TAG = MainActivity::class.java.simpleName

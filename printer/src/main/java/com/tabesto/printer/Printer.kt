@@ -33,12 +33,6 @@ interface Printer {
      */
     fun setPrintListener(printerPrintListener: PrinterPrintListener)
 
-    /**
-     * Set Listener to receive callback from [PrinterDiscoveryListener]
-     * @param printerDiscoveryListener  gives the possibility to interact back to the caller app to notify if discovery succeed or failed
-     */
-    fun setDiscoveryListener(printerDiscoveryListener: PrinterDiscoveryListener)
-
     fun setStatusListener(printerStatusListener: PrinterStatusListener)
 
     /**
@@ -47,20 +41,17 @@ interface Printer {
      * @param printerInitListener  gives the possibility to interact back to the caller app to notify if init succeed or failed
      * @param printerConnectListener  gives the possibility to interact back to the caller app to notify if connection succeed or failed
      * @param printerPrintListener  gives the possibility to interact back to the caller app to notify if printing succeed or failed
-     * @param printerDiscoveryListener  gives the possibility to interact back to the caller app to notify if discovery succeed or failed
      * @param printerStatusListener will receive callback for status get status and status update
      */
     fun setListeners(
         printerInitListener: PrinterInitListener? = null,
         printerConnectListener: PrinterConnectListener? = null,
         printerPrintListener: PrinterPrintListener? = null,
-        printerDiscoveryListener: PrinterDiscoveryListener? = null,
         printerStatusListener: PrinterStatusListener? = null
     ) {
         printerInitListener?.let { setInitListener(it) }
         printerConnectListener?.let { setConnectListener(it) }
         printerPrintListener?.let { setPrintListener(it) }
-        printerDiscoveryListener?.let { setDiscoveryListener(it) }
         printerStatusListener?.let { setStatusListener(it) }
     }
 
@@ -68,36 +59,21 @@ interface Printer {
      * connectPrinter method that connect the android device to the printer
      * by bluetooth or by wifi
      */
-    fun connectPrinter()
+    fun connectPrinter(timeout: Int? = null)
 
     /**
      * This method write ticket data and print it
      *
      */
-    fun printData(ticketData: TicketData)
+    fun printData(ticketData: TicketData, timeout: Int? = null)
+
+    fun printDataOnDemand(ticketData: TicketData, connectTimeout: Int? = null, printTimeout: Int? = null)
 
     /**
      * This method disconnect the printer
      *
      */
     fun disconnectPrinter()
-
-    /**
-     * launchDiscovery method gives the possibility to launch a discovery (with delay in ms or not)
-     * it also manage multiple launch of discovery and if it needs to restart the discovery or not
-     * by default bluetooth of android device is restarted just before launching discovery process
-     * @param delayMillis is delay in milli seconds that precise after how much time the result will be sent back to caller
-     *
-     */
-    fun restartBluetoothAndLaunchDiscovery(delayMillis: Long = 0)
-
-    fun restartBluetooth()
-
-    /**
-     * stopDiscovery method gives the possibility to caller app to stop discovery if a discovery is on going
-     *
-     */
-    fun stopDiscovery()
 
     /**
      *  This method returns the [PrinterStatus] of current printer but will block the main thread while retrieving the status

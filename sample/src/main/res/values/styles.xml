@@ -12,11 +12,19 @@
         <item name="android:textColor">@android:color/white</item>
         <item name="android:textStyle">normal</item>
         <item name="android:gravity">center</item>
-        <item name="android:textSize">22sp</item>
-        <item name="android:paddingTop">16dp</item>
-        <item name="android:paddingBottom">16dp</item>
+        <item name="android:textAlignment">center</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:paddingTop">12dp</item>
+        <item name="android:paddingBottom">12dp</item>
         <item name="android:paddingStart">32dp</item>
         <item name="android:paddingEnd">32dp</item>
+    </style>
+
+    <style name="PrinterImageButtonPrimary" parent="Widget.AppCompat.ImageButton">
+        <item name="android:background">@drawable/bg_printer_button_primary</item>
+        <item name="android:tint">@android:color/white</item>
+        <item name="android:gravity">center</item>
+        <item name="android:padding">12dp</item>
     </style>
 
     <style name="PrinterEditText" parent="Widget.AppCompat.EditText">
@@ -25,11 +33,19 @@
         <item name="android:gravity">start</item>
         <item name="android:textColor">@color/colorPrimary</item>
         <item name="android:textColorHint">@android:color/darker_gray</item>
-        <item name="android:textSize">22sp</item>
-        <item name="android:paddingTop">16dp</item>
-        <item name="android:paddingBottom">16dp</item>
-        <item name="android:paddingStart">32dp</item>
-        <item name="android:paddingEnd">20dp</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:paddingTop">12dp</item>
+        <item name="android:paddingBottom">12dp</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">16dp</item>
+    </style>
+
+    <style name="PrinterTitle" parent="Widget.AppCompat.TextView">
+        <item name="android:textSize">24sp</item>
+        <item name="android:paddingTop">8dp</item>
+        <item name="android:paddingBottom">8dp</item>
+        <item name="android:paddingStart">2dp</item>
+        <item name="android:paddingEnd">2dp</item>
     </style>
 
 </resources>

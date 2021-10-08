@@ -1,8 +1,6 @@
 package com.tabesto.printer.utils
 
 typealias EposPrinter = com.epson.epos2.printer.Printer
-typealias EposDiscovery = com.epson.epos2.discovery.Discovery
-typealias EposDiscoveryListener = com.epson.epos2.discovery.DiscoveryListener
 
 object Constants {
 
@@ -17,4 +15,7 @@ object Constants {
     // For Device Manager
     const val PRINTER_DATA_NOT_MANAGED = "Printer is not managed by the device manager, please connect it"
     const val MAIN_JOB_IS_RUNNING = "A main job is already running"
+
+    const val CONNECT_TIMEOUT_MIN = 1000
+    const val PRINT_TIMEOUT_MIN = 5000
 }

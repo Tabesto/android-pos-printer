@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import com.tabesto.printer.Printer
 import com.tabesto.printer.PrinterConnectListener
-import com.tabesto.printer.PrinterDiscoveryListener
 import com.tabesto.printer.PrinterFactory
 import com.tabesto.printer.PrinterInitListener
 import com.tabesto.printer.PrinterPrintListener
@@ -15,13 +14,12 @@ import com.tabesto.printer.model.PrinterData
 import com.tabesto.printer.model.PrinterManaged
 import com.tabesto.printer.model.PrinterRemainingJob
 import com.tabesto.printer.model.ScopeTag
-import com.tabesto.printer.model.ScopeTag.BLUETOOTH
 import com.tabesto.printer.model.ScopeTag.CONNECT
 import com.tabesto.printer.model.ScopeTag.DISCONNECT
-import com.tabesto.printer.model.ScopeTag.DISCOVERY
 import com.tabesto.printer.model.ScopeTag.GET_STATUS
 import com.tabesto.printer.model.ScopeTag.INITIALIZE
 import com.tabesto.printer.model.ScopeTag.PRINT_DATA
+import com.tabesto.printer.model.ScopeTag.PRINT_DATA_ON_DEMAND
 import com.tabesto.printer.model.devicemanager.DeviceManagerJobResult
 import com.tabesto.printer.model.error.DeviceManagerException
 import com.tabesto.printer.model.error.PrinterException
@@ -41,12 +39,11 @@ import java.util.Date
 import javax.inject.Inject
 
 class DeviceManagerImpl internal constructor() : DeviceManager, PrinterInitListener, PrinterConnectListener, PrinterPrintListener,
-    PrinterDiscoveryListener, PrinterStatusListener {
+    PrinterStatusListener {
     private val printerFactory: PrinterFactory = PrinterFactory()
     private var deviceManagerInitListener: DeviceManagerInitListener? = null
     private var deviceManagerConnectListener: DeviceManagerConnectListener? = null
     private var deviceManagerPrintListener: DeviceManagerPrintListener? = null
-    private var deviceManagerDiscoveryListener: DeviceManagerDiscoveryListener? = null
     private var deviceManagerStatusListener: DeviceManagerStatusListener? = null
     private val listOfJobs: HashMap<PrinterData, ScopeTag> = HashMap()
     private val listOfJobsResult: MutableList<DeviceManagerJobResult> = mutableListOf()
@@ -70,8 +67,6 @@ class DeviceManagerImpl internal constructor() : DeviceManager, PrinterInitListe
      * multiple initialization, one connection, multiple connection, one printing, multiple printing, one
      * disconnection, multiple disconnection. if one of those method above is running you cannot run another
      * method of above list at the same time
-     * if it is false restartBluetoothAndLaunchDiscovery and restartBluetooth won't be launched because
-     * it can cause problems
      */
     internal var mainJobIsRunning = false
 
@@ -113,7 +108,7 @@ class DeviceManagerImpl internal constructor() : DeviceManager, PrinterInitListe
     private fun addPrinterToList(printerData: PrinterData, context: Context) {
         val printer: Printer = printerFactory.getPrinter(printerData, context)
         printer.initializePrinter()
-        printer.setListeners(this, this, this, this, this)
+        printer.setListeners(this, this, this, this)
         listOfPrinters[printerData] = printer
     }
 
@@ -129,22 +124,18 @@ class DeviceManagerImpl internal constructor() : DeviceManager, PrinterInitListe
         this.deviceManagerPrintListener = deviceManagerPrintListener
     }
 
-    override fun setDiscoveryListener(deviceManagerDiscoveryListener: DeviceManagerDiscoveryListener) {
-        this.deviceManagerDiscoveryListener = deviceManagerDiscoveryListener
-    }
-
     override fun setStatusListener(deviceManagerStatusListener: DeviceManagerStatusListener) {
         this.deviceManagerStatusListener = deviceManagerStatusListener
     }
 
-    override fun connectPrinter(printerData: PrinterData) {
+    override fun connectPrinter(printerData: PrinterData, timeout: Int?) {
         if (!mainJobIsRunning) {
             mainJobIsRunning = true
 
             val listOfPrinterDataManaged = initializeJobList(printerData, CONNECT)
 
             listOfPrinterDataManaged.forEach {
-                listOfPrinters[it]?.connectPrinter()
+                listOfPrinters[it]?.connectPrinter(timeout)
             }
         } else {
             logger.d("connectPrinter blocked mainJobIsRunning is running")
@@ -153,14 +144,14 @@ class DeviceManagerImpl internal constructor() : DeviceManager, PrinterInitListe
         }
     }
 
-    override fun connectPrinter(listOfPrinterData: List<PrinterData>) {
+    override fun connectPrinter(listOfPrinterData: List<PrinterData>, timeout: Int?) {
         if (!mainJobIsRunning) {
             mainJobIsRunning = true
 
             val listOfPrinterDataManaged = initializeJobList(listOfPrinterData, CONNECT)
 
             listOfPrinterDataManaged.forEach {
-                listOfPrinters[it]?.connectPrinter()
+                listOfPrinters[it]?.connectPrinter(timeout)
             }
         } else {
             logger.d("connectPrinter blocked mainJobIsRunning is running")
@@ -169,28 +160,53 @@ class DeviceManagerImpl internal constructor() : DeviceManager, PrinterInitListe
         }
     }
 
-    override fun connectPrinter() {
-        launchBatchOfJobIfPrinterListNotEmpty(CONNECT)
+    override fun connectPrinter(timeout: Int?) {
+        launchBatchOfJobIfPrinterListNotEmpty(scope = CONNECT, connectTimeout = timeout)
     }
 
-    override fun printData(printerData: PrinterData, ticketData: TicketData) {
+    override fun printData(printerData: PrinterData, ticketData: TicketData, timeout: Int?) {
         val listOfPrinterDataManaged = initializeJobList(printerData, PRINT_DATA)
 
         listOfPrinterDataManaged.forEach {
-            listOfPrinters[it]?.printData(ticketData)
+            listOfPrinters[it]?.printData(ticketData, timeout)
         }
     }
 
-    override fun printData(listOfPrinterData: List<PrinterData>, ticketData: TicketData) {
+    override fun printDataOnDemand(printerData: PrinterData, ticketData: TicketData, connectTimeout: Int?, printTimeout: Int?) {
+        val listOfPrinterDataManaged = initializeJobList(printerData, PRINT_DATA)
+
+        listOfPrinterDataManaged.forEach {
+            listOfPrinters[it]?.printDataOnDemand(ticketData, connectTimeout, printTimeout)
+        }
+    }
+
+    override fun printData(listOfPrinterData: List<PrinterData>, ticketData: TicketData, timeout: Int?) {
         val listOfPrinterDataManaged = initializeJobList(listOfPrinterData, PRINT_DATA)
 
         listOfPrinterDataManaged.forEach {
-            listOfPrinters[it]?.printData(ticketData)
+            listOfPrinters[it]?.printData(ticketData, timeout)
         }
     }
 
-    override fun printData(ticketData: TicketData) {
-        launchBatchOfJobIfPrinterListNotEmpty(PRINT_DATA, ticketData)
+    override fun printDataOnDemand(
+        listOfPrinterData: List<PrinterData>,
+        ticketData: TicketData,
+        connectTimeout: Int?,
+        printTimeout: Int?
+    ) {
+        val listOfPrinterDataManaged = initializeJobList(listOfPrinterData, PRINT_DATA)
+
+        listOfPrinterDataManaged.forEach {
+            listOfPrinters[it]?.printDataOnDemand(ticketData, connectTimeout, printTimeout)
+        }
+    }
+
+    override fun printData(ticketData: TicketData, timeout: Int?) {
+        launchBatchOfJobIfPrinterListNotEmpty(PRINT_DATA, ticketData, timeout)
+    }
+
+    override fun printDataOnDemand(ticketData: TicketData, connectTimeout: Int?, printTimeout: Int?) {
+        launchBatchOfJobIfPrinterListNotEmpty(PRINT_DATA_ON_DEMAND, ticketData, connectTimeout, printTimeout)
     }
 
     override fun disconnectPrinter(printerData: PrinterData) {
@@ -228,28 +244,40 @@ class DeviceManagerImpl internal constructor() : DeviceManager, PrinterInitListe
         launchBatchOfJobIfPrinterListNotEmpty(DISCONNECT)
     }
 
-    private fun launchBatchOfJobIfPrinterListNotEmpty(scope: ScopeTag, ticketData: TicketData? = null) {
-        if (scope == PRINT_DATA) {
-            checkIfListOfPrinterIsEmpty(scope)
-            listOfPrinters.forEach { ticketData?.let { data -> it.value.printData(data) } }
-        } else {
-            if (mainJobIsRunning) {
-                logger.d("launchBatchOfJobIfPrinterListNotEmpty blocked mainJobIsRunning is running $scope")
-                returnMainJobIsRunning(listOfPrinters.keys.toList(), scope)
-                logRemainingJobs()
-                return
+    private fun launchBatchOfJobIfPrinterListNotEmpty(
+        scope: ScopeTag,
+        ticketData: TicketData? = null,
+        connectTimeout: Int? = null,
+        printTimeout: Int? = null
+    ) {
+        when (scope) {
+            PRINT_DATA -> {
+                checkIfListOfPrinterIsEmpty(scope)
+                listOfPrinters.forEach { ticketData?.let { data -> it.value.printData(data, connectTimeout) } }
             }
+            PRINT_DATA_ON_DEMAND -> {
+                checkIfListOfPrinterIsEmpty(scope)
+                listOfPrinters.forEach { ticketData?.let { data -> it.value.printDataOnDemand(data, connectTimeout, printTimeout) } }
+            }
+            else -> {
+                if (mainJobIsRunning) {
+                    logger.d("launchBatchOfJobIfPrinterListNotEmpty blocked mainJobIsRunning is running $scope")
+                    returnMainJobIsRunning(listOfPrinters.keys.toList(), scope)
+                    logRemainingJobs()
+                    return
+                }
 
-            checkIfListOfPrinterIsEmpty(scope)
+                checkIfListOfPrinterIsEmpty(scope)
 
-            mainJobIsRunning = true
-            initializeJobList(listOfPrinters.keys.toList(), scope)
+                mainJobIsRunning = true
+                initializeJobList(listOfPrinters.keys.toList(), scope)
 
-            listOfPrinters.forEach {
-                when (scope) {
-                    CONNECT -> it.value.connectPrinter()
-                    DISCONNECT -> it.value.disconnectPrinter()
-                    else -> logger.i(" we are in launchBatchOfJobIfPrinterListNotEmpty , an unknown scope has been called ${scope.name} ")
+                listOfPrinters.forEach {
+                    when (scope) {
+                        CONNECT -> it.value.connectPrinter(connectTimeout)
+                        DISCONNECT -> it.value.disconnectPrinter()
+                        else -> logger.i(" we are in launchBatchOfJobIfPrinterListNotEmpty , an unknown scope has been called ${scope.name} ")
+                    }
                 }
             }
         }
@@ -289,29 +317,6 @@ class DeviceManagerImpl internal constructor() : DeviceManager, PrinterInitListe
         }
 
         return listOfPrinterDataManaged
-    }
-
-    override fun restartBluetoothAndLaunchDiscovery(printerData: PrinterData, delayMillis: Long) {
-        if (!mainJobIsRunning) {
-            listOfPrinters[printerData]?.restartBluetoothAndLaunchDiscovery(delayMillis) ?: returnDeviceManagerExceptionForAJob(
-                printerData,
-                BLUETOOTH
-            )
-        } else {
-            logger.d("restartBluetoothAndLaunchDiscovery blocked mainJobIsRunning is running")
-        }
-    }
-
-    override fun restartBluetooth(printerData: PrinterData) {
-        if (!mainJobIsRunning) {
-            listOfPrinters[printerData]?.restartBluetooth() ?: returnDeviceManagerExceptionForAJob(printerData, BLUETOOTH)
-        } else {
-            logger.d("restartBluetooth blocked mainJobIsRunning is running")
-        }
-    }
-
-    override fun stopDiscovery(printerData: PrinterData) {
-        listOfPrinters[printerData]?.stopDiscovery() ?: returnDeviceManagerExceptionForAJob(printerData, DISCOVERY)
     }
 
     override fun getStatus(printerData: PrinterData) {
@@ -474,22 +479,6 @@ class DeviceManagerImpl internal constructor() : DeviceManager, PrinterInitListe
         mainJobIsRunning = false
     }
 
-    override fun onDiscoveryFinish(printerData: PrinterData, isAvailable: Boolean) {
-        deviceManagerDiscoveryListener?.onDiscoveryFinish(printerData, isAvailable)
-    }
-
-    override fun onDiscoveryFailure(printerData: PrinterData, printerException: PrinterException) {
-        deviceManagerDiscoveryListener?.onDiscoveryFailure(printerData, printerException)
-    }
-
-    override fun onDiscoveryStopSuccess(printerData: PrinterData) {
-        deviceManagerDiscoveryListener?.onDiscoveryStopSuccess(printerData)
-    }
-
-    override fun onBluetoothRestartSuccess(printerData: PrinterData) {
-        deviceManagerDiscoveryListener?.onBluetoothRestartSuccess(printerData)
-    }
-
     override fun getManagedPrinterDataList() = listOfPrinters.keys.toList()
 
     override fun getManagedPrinterDataAndStatusList() {
@@ -532,6 +521,21 @@ class DeviceManagerImpl internal constructor() : DeviceManager, PrinterInitListe
                     return true
                 }
             }
+        }
+        logRemainingJobs()
+        return false
+    }
+
+    override fun removePrinter(): Boolean {
+        if (!mainJobIsRunning) {
+            logger.d("removePrinter mainJobIsRunning is NOT running")
+            listOfPrinters.forEach { (printerData, printer) ->
+                val printerStatus = printer.getStatusRaw()
+                if (printerStatus.connectionStatus.isConnected == false) {
+                    listOfPrinters.remove(printerData)
+                }
+            }
+            return true
         }
         logRemainingJobs()
         return false

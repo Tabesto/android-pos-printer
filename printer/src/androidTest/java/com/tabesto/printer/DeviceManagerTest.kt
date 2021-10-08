@@ -22,9 +22,9 @@ import com.tabesto.printer.model.PrinterManaged
 import com.tabesto.printer.model.PrinterModel
 import com.tabesto.printer.model.PrinterRegion
 import com.tabesto.printer.model.PrinterType
-import com.tabesto.printer.model.ScopeTag.PRINT_DATA
-import com.tabesto.printer.model.ScopeTag.DISCONNECT
 import com.tabesto.printer.model.ScopeTag.CONNECT
+import com.tabesto.printer.model.ScopeTag.DISCONNECT
+import com.tabesto.printer.model.ScopeTag.PRINT_DATA
 import com.tabesto.printer.model.devicemanager.DeviceManagerJobResult
 import com.tabesto.printer.model.error.PrinterException
 import com.tabesto.printer.model.status.ConnectionStatus.CONNECTED
@@ -140,7 +140,6 @@ class DeviceManagerTest {
             deviceManagerInitListener = null,
             deviceManagerConnectListener = mockDeviceManagerConnectListener,
             deviceManagerPrintListener = mockDeviceManagerPrintListener,
-            deviceManagerDiscoveryListener = null,
             deviceManagerStatusListener = mockDeviceManagerStatusListener,
             deviceManagerListener = mockDeviceManagerListener
         )

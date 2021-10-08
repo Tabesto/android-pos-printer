@@ -8,25 +8,31 @@ import com.tabesto.printer.model.ticket.TicketData
 
 interface DeviceManager {
     /**
-     * this listener will fire callback to caller app in order
+     * This listener will fire callback to caller app in order
      * to inform if any error happened in data process
      * example : list of printer empty, or unknown printer address
      */
     var deviceManagerListener: DeviceManagerListener?
 
     /**
-     * initialize a printer object for a specific address
-     * if it is already initialized it won't do anything
-     * @param printerData
-     * @param context
+     * Initialize given printers :
+     * - add given printers to printers managed by device manager.
+     * - init sdk for given printers.
+     * If a printer is already initialized, it won't do anything.
+     *
+     * @param printerData targeted printer
+     * @param context application context required to init sdk
      */
     fun initializePrinter(printerData: PrinterData, context: Context)
 
     /**
-     * initialize a list of printer object for list of printer address
-     * if it is already initialized it won't do anything
-     * @param listOfPrinterData
-     * @param context
+     * Initialize given printers :
+     * - add given printers to printers managed by device manager.
+     * - init sdk for given printers.
+     * If a printer is already initialized, it won't do anything.
+     *
+     * @param listOfPrinterData targeted printers
+     * @param context application context required to init sdk
      */
     fun initializePrinter(listOfPrinterData: List<PrinterData>, context: Context)
 
@@ -46,11 +52,6 @@ interface DeviceManager {
     fun setPrintListener(deviceManagerPrintListener: DeviceManagerPrintListener)
 
     /**
-     * Set Listener to receive callback from [DeviceManagerDiscoveryListener]
-     */
-    fun setDiscoveryListener(deviceManagerDiscoveryListener: DeviceManagerDiscoveryListener)
-
-    /**
      * Set Listener to receive callback from [DeviceManagerStatusListener]
      *
      * @param deviceManagerStatusListener
@@ -63,158 +64,197 @@ interface DeviceManager {
      * @param deviceManagerInitListener
      * @param deviceManagerConnectListener
      * @param deviceManagerPrintListener
-     * @param deviceManagerDiscoveryListener
      * @param deviceManagerStatusListener
      */
     fun setListeners(
         deviceManagerInitListener: DeviceManagerInitListener? = null,
         deviceManagerConnectListener: DeviceManagerConnectListener? = null,
         deviceManagerPrintListener: DeviceManagerPrintListener? = null,
-        deviceManagerDiscoveryListener: DeviceManagerDiscoveryListener? = null,
         deviceManagerStatusListener: DeviceManagerStatusListener? = null,
         deviceManagerListener: DeviceManagerListener
     ) {
         deviceManagerInitListener?.let { setInitListener(it) }
         deviceManagerConnectListener?.let { setConnectListener(it) }
         deviceManagerPrintListener?.let { setPrintListener(it) }
-        deviceManagerDiscoveryListener?.let { setDiscoveryListener(it) }
         deviceManagerStatusListener?.let { setStatusListener(it) }
         deviceManagerListener.let { this.deviceManagerListener = it }
     }
 
     /**
-     * connect one specific printer by its printer address
-     * if it is already connected you will receive a success connection feedback
-     * This method must be called after initialization else it will fire a device manager error callback
-     * @param printerData
-     */
-    fun connectPrinter(printerData: PrinterData)
-
-    /**
-     * connect all printer address given in parameter
+     * Connect given printer
      * if a specific printer address  is already connected it will put connected successful
      * This method must be called after initialization else it will fire a device manager error callback
-     * @param listOfPrinterData
-     */
-    fun connectPrinter(listOfPrinterData: List<PrinterData>)
-
-    /**
-     * connect all managed printer
      *
+     * @param printerData targeted printer
+     * @param timeout connection timeout in milliseconds
      */
-    fun connectPrinter()
+    fun connectPrinter(printerData: PrinterData, timeout: Int? = null)
 
     /**
-     * This method write ticket data and print it on a specific printer address
+     * Connect given printers
+     * if a specific printer address  is already connected it will put connected successful
+     * This method must be called after initialization else it will fire a device manager error callback
      *
-     * @param printerData
-     * @param ticketData
+     * @param listOfPrinterData targeted printers
+     * @param timeout connection timeout in milliseconds
      */
-    fun printData(printerData: PrinterData, ticketData: TicketData)
+    fun connectPrinter(listOfPrinterData: List<PrinterData>, timeout: Int? = null)
 
     /**
-     * This method write ticket data and print it on all printer address given in parameter
-     * @param listOfPrinterData
-     * @param ticketData
-     */
-    fun printData(listOfPrinterData: List<PrinterData>, ticketData: TicketData)
-
-    /**
-     * This method will print the ticket on all managed printer
+     * Connect all managed printer
      *
-     * @param ticketData
+     * @param timeout connection timeout in milliseconds
      */
-    fun printData(ticketData: TicketData)
+    fun connectPrinter(timeout: Int? = null)
 
     /**
-     * This method disconnect the printer linked to printer address in printerData
-     * @param printerData
+     * Print ticket on given printer
+     *
+     * @param printerData targeted printer
+     * @param ticketData ticket to print
+     * @param timeout print timeout in milliseconds
+     */
+    fun printData(printerData: PrinterData, ticketData: TicketData, timeout: Int? = null)
+
+    /**
+     * Print ticket on given printer with on demand connection mode
+     *
+     * @param printerData targeted printer
+     * @param ticketData ticket to print
+     * @param connectTimeout connection timeout in milliseconds
+     * @param printTimeout print timeout in milliseconds
+     */
+    fun printDataOnDemand(printerData: PrinterData, ticketData: TicketData, connectTimeout: Int? = null, printTimeout: Int? = null)
+
+    /**
+     * Print ticket on given printers
+     *
+     * @param listOfPrinterData targeted printers
+     * @param ticketData ticket to print
+     * @param timeout print timeout in milliseconds
+     */
+    fun printData(listOfPrinterData: List<PrinterData>, ticketData: TicketData, timeout: Int? = null)
+
+    /**
+     * Print ticket on given printers with on demand connection mode
+     *
+     * @param listOfPrinterData targeted printers
+     * @param ticketData ticket to print
+     * @param connectTimeout connection timeout in milliseconds
+     * @param printTimeout print timeout in milliseconds
+     */
+    fun printDataOnDemand(
+        listOfPrinterData: List<PrinterData>,
+        ticketData: TicketData,
+        connectTimeout: Int? = null,
+        printTimeout: Int? = null
+    )
+
+    /**
+     * Print ticket on all managed printer
+     *
+     * @param ticketData ticket to print
+     * @param timeout print timeout in milliseconds
+     */
+    fun printData(ticketData: TicketData, timeout: Int? = null)
+
+    /**
+     * Print ticket on all managed printer with on demand connection mode
+     *
+     * @param ticketData ticket to print
+     * @param connectTimeout connection timeout in milliseconds
+     * @param printTimeout print timeout in milliseconds
+     */
+    fun printDataOnDemand(ticketData: TicketData, connectTimeout: Int? = null, printTimeout: Int? = null)
+
+    /**
+     * Disconnect given printer
+     *
+     * @param printerData targeted printer
      */
     fun disconnectPrinter(printerData: PrinterData)
 
     /**
-     * Disconnect all printer given by parameter in printer data list
+     * Disconnect given printers
      *
      * @param listOfPrinterData
      */
     fun disconnectPrinter(listOfPrinterData: List<PrinterData>)
 
     /**
-     * This method will disconnect all managed printer
-     *
+     * Disconnect all managed printer
      */
     fun disconnectPrinter()
 
     /**
-     * This method will send back the status of corresponding printer data
+     * Retrieve status of given printer
+     * by callback onStatusReceived in [DeviceManagerStatusListener]
      *
-     * @param printerData
-     * @return
+     * @param printerData targeted printer
      */
     fun getStatus(printerData: PrinterData)
 
     /**
-     * this method returns the list of printer data that is already managed by device manager
+     * Retrieve list of printer already managed by device manager
      *
-     * @return
+     * @return list of printer already managed by device manager
      */
     fun getManagedPrinterDataList(): List<PrinterData>
 
     /**
-     * this method returns the list of printer data that is already managed by device manager
-     * with their status by callback onListOfPrinterManagedReceived in [DeviceManagerListener]
+     *  Retrieve list of printer already managed by device manager
+     *  with their status by callback onListOfPrinterManagedReceived in [DeviceManagerListener]
      *
-     * @return
      */
     fun getManagedPrinterDataAndStatusList()
 
     /**
-     * this method will send the list of all jobs done by the device manager
+     * Retrieve list of all jobs done by the device manager
      *
-     * @return
+     * @return list of all jobs done by the device manager
      */
     fun getJobsResultHistoryList(): List<DeviceManagerJobResult>
 
     /**
-     * this method will give the possibility to clear the history of job result list
+     * Clear the history of job result list
      *
      */
     fun clearJobsResultHistoryList()
 
     /**
-     * This gives the possibility to enable disable logs
-     * By default logs are enable
-     * @param enable
+     * Enable or disable logs
+     * By default logs are enabled
+     *
+     * @param enable logs activation
      */
     fun enableLogs(enable: Boolean = true)
 
     /**
-     * this method will remove the printer linked to the printer data passed in param
-     * if it is connected it will not remove it and send back false
-     * if it is disconnected it will remove the printer and send back true
+     * Remove given printer from all managed printers
      *
      * @param printerData
+     * @return if it is connected it will not remove it and send back false
+     * if it is disconnected it will remove the printer and send back true
      */
     fun removePrinter(printerData: PrinterData): Boolean
 
     /**
-     * This method will cancel all background jobs running on each printer
-     * and unlock main job
+     * Remove all managed printers
+     *
+     * @return if it is connected it will not remove it and send back false
+     * if it is disconnected it will remove the printer and send back true
+     */
+    fun removePrinter(): Boolean
+
+    /**
+     * Cancel all background jobs running on each printer and unlock main job
      *
      */
     fun cancelAllJobsAndUnlock()
 
     /**
-     * This method will return the list of background jobs still in progress
+     * Retrieve list of background jobs still in progress
      *
      */
     fun getListOfRemainingJobs(): List<PrinterRemainingJob>
-
-    // region MOVE_DISCOVERY
-    fun restartBluetoothAndLaunchDiscovery(printerData: PrinterData, delayMillis: Long = 0)
-
-    fun restartBluetooth(printerData: PrinterData)
-
-    fun stopDiscovery(printerData: PrinterData)
-    // endregion MOVE_DISCOVERY
 }

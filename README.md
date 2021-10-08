@@ -97,7 +97,7 @@ A [Javadoc is available here.](https://tabesto.github.io/android-pos-printer/pri
 
 🚧 TODO: add more detailed documentation with examples
 
-<img src="docs/sample-screenshot-home.png" alt="drawing" width="300"/>
+<img src="docs/sample-screenshot-home-1.png" alt="drawing" width="300"/> <img src="docs/sample-screenshot-home-2.png" alt="drawing" width="300"/>
 
 *Note: for now, sample app is optimized for tablet screens*
 

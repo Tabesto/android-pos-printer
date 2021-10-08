@@ -6,7 +6,7 @@ package com.tabesto.printer.model.ticket
  *
  * @param ticketLineList
  */
-class TicketData(var ticketLineList: MutableList<TicketLine> = mutableListOf()) {
+class TicketData(val ticketLineList: List<TicketLine> = mutableListOf()) {
     constructor (ticketDataBuilder: TicketDataBuilder) : this(ticketDataBuilder.ticketLineList)
 
     class TicketDataBuilder {

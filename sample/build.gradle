@@ -29,6 +29,9 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    buildFeatures {
+        viewBinding = true
+    }
 }
 repositories {
     maven {
@@ -46,9 +49,18 @@ dependencies {
     implementation deps.kotlin.ktx
     implementation deps.compat.appCompat
     implementation deps.compat.constraintLayout
+    implementation deps.compat.lifecycleRuntime
+    implementation deps.compat.lifecycleCommon
+    implementation deps.compat.lifecycleViewmodel
+    implementation deps.compat.lifecycleLivedata
     implementation deps.ui.recyclerView
     debugImplementation deps.leakCanary
     implementation deps.log.timber
+    implementation deps.ui.fastAdapter.core
+    implementation deps.ui.fastAdapter.viewBindingExt
+    implementation deps.ui.fastAdapter.expandableExt
+    implementation deps.ui.fastAdapter.uiExt
+    implementation deps.ui.material
 
     api project(':printer')
     // Replace "api project(':printer')" by this line to call printer library from external

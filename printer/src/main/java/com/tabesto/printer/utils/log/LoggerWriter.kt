@@ -9,52 +9,39 @@ class LoggerWriter(private val className: String) {
     }
 
     private fun printLoggerSeparator(loggerLevel: LoggerLevel) {
+        Timber.tag(className)
         when (loggerLevel) {
             LoggerLevel.DEBUG -> {
-                Timber.tag(className)
                 Timber.d(lineSeparator)
             }
             LoggerLevel.INFO -> {
-                Timber.tag(className)
                 Timber.i(lineSeparator)
             }
             LoggerLevel.ERROR -> {
-                Timber.tag(className)
                 Timber.e(lineSeparator)
             }
             LoggerLevel.WARNING -> {
-                Timber.tag(className)
                 Timber.w(lineSeparator)
             }
         }
     }
 
-    private fun printLoggerBody(loggerLevel: LoggerLevel, listLoggerBodyContent: List<LoggerExtraArgument>) {
-        when (loggerLevel) {
-            LoggerLevel.DEBUG -> for (log in listLoggerBodyContent) {
-                Timber.tag(className)
-                Timber.d("* ${log.name} : ${log.value} ")
-            }
-            LoggerLevel.INFO -> for (log in listLoggerBodyContent) {
-                Timber.tag(className)
-                Timber.i("* ${log.name} : ${log.value} ")
-            }
-            LoggerLevel.ERROR -> for (log in listLoggerBodyContent) {
-                Timber.tag(className)
-                Timber.e("* ${log.name} : ${log.value} ")
-            }
-            LoggerLevel.WARNING -> for (log in listLoggerBodyContent) {
-                Timber.tag(className)
-                Timber.w("* ${log.name} : ${log.value} ")
+    private fun printLoggerBody(loggerLevel: LoggerLevel, listLoggerBodyContent: List<LoggerExtraArgument?>) {
+        for (log in ArrayList(listLoggerBodyContent)) {
+            Timber.tag(className)
+            val message = "* ${log?.name} : ${log?.value}"
+            when (loggerLevel) {
+                LoggerLevel.DEBUG -> Timber.d(message)
+                LoggerLevel.INFO -> Timber.i(message)
+                LoggerLevel.ERROR -> Timber.e(message)
+                LoggerLevel.WARNING -> Timber.w(message)
             }
         }
     }
 
-    fun printLog(loggerLevel: LoggerLevel, listLoggerBodyContent: List<LoggerExtraArgument>) {
+    fun printLog(loggerLevel: LoggerLevel, listLoggerBodyContent: List<LoggerExtraArgument?>) {
         printLoggerSeparator(loggerLevel)
-
         printLoggerBody(loggerLevel, listLoggerBodyContent)
-
         printLoggerSeparator(loggerLevel)
     }
 }
