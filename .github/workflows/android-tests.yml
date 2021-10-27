@@ -3,12 +3,12 @@ name: "[CI] Lint+Tests"
 on:
   # limit build triggers for now
   # maybe we'll can add in the future PR synchronize triggers..
-  push:
-    pull_request:
-      types: [opened, ready_for_review]
+  pull_request:
+    types: [ opened, ready_for_review ]
     branches:
       - "develop"
       - "main"
+      - "v2"
   workflow_dispatch:
 
 jobs:
